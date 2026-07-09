@@ -1,0 +1,62 @@
+## ==========================================
+## .NET Core / .NET 5+ / Build Artifacts
+## ==========================================
+[Bb]in/
+[Oo]bj/
+[Log]/
+[Llogs]/
+*.binlog
+*.bld
+*.msvcuser
+
+## ==========================================
+## IDE & Editor Specific Files
+## ==========================================
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vshistory/
+.localhistory/
+Generated\ Files/
+
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+*.code-workspace
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+## ==========================================
+## Package & Dependency Management
+## ==========================================
+# NuGet packages directory
+packages/
+# Restore cache files
+project.lock.json
+project.fragment.lock.json
+*.nuget.props
+*.nuget.targets
+
+## ==========================================
+## Testing & Results
+## ==========================================
+TestResult*/
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+## ==========================================
+## Environments & Secrets
+## ==========================================
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+usersecrets.json
