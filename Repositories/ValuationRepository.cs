@@ -11,9 +11,13 @@ public class ValuationRepository : IValuationRepository
 
     public ValuationRepository(IConfiguration configuration)
     {
+        if (configuration == null)
+        {
+            throw new ArgumentNullException(nameof(configuration));
+        }
+
         _connectionString = configuration.GetConnectionString("DefaultConnection")
-                            ?? Environment.GetEnvironmentVariable("CONNECTION_STRING")
-                            ?? "Host=localhost;Port=5432;Database=valuation;Username=postgres;Password=postgres";
+            ?? throw new InvalidOperationException("DefaultConnection is not configured.");
     }
 
     public async Task<AssetDto?> GetAssetDataAsync(string exchange, string ticker, string lang) 

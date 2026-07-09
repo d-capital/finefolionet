@@ -42,6 +42,7 @@ builder.Services.AddSingleton<PriceService>();
 builder.Services.AddSingleton<IAssetUpdateService, AssetUpdateService>();
 builder.Services.AddHostedService<AssetUpdateBackgroundService>();
 
+
 var app = builder.Build();
 
 // Enable Dapper snake_case mapping so database columns like
@@ -49,9 +50,7 @@ var app = builder.Build();
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 // Run Evolve migrations on startup
-var connStr = builder.Configuration.GetConnectionString("DefaultConnection")
-           ?? Environment.GetEnvironmentVariable("CONNECTION_STRING")
-           ?? "Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=Dcapital21!";
+var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
 
 using (var conn = new NpgsqlConnection(connStr))
 {
