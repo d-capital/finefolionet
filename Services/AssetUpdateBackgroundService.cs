@@ -64,7 +64,7 @@ public class AssetUpdateBackgroundService : BackgroundService
         var moscow = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
         var nowMoscow = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.Utc, moscow);
 
-        var nextRunMoscow = new DateTime(nowMoscow.Year, nowMoscow.Month, nowMoscow.Day, 13, 59, 0, DateTimeKind.Unspecified);
+        var nextRunMoscow = new DateTime(nowMoscow.Year, nowMoscow.Month, nowMoscow.Day, 5, 0, 0, DateTimeKind.Unspecified);
         if (nowMoscow >= nextRunMoscow)
         {
             nextRunMoscow = nextRunMoscow.AddDays(1);
