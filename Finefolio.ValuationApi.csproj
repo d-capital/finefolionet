@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Replace 'Migrations' with your actual SQL folder name if different -->
+    <None Include="db\migrations\**\*.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
     <PackageReference Include="Evolve" Version="3.2.0" />

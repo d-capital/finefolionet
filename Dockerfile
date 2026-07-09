@@ -20,5 +20,9 @@ COPY --from=build /app/publish .
 # Expose the default ASP.NET Core port and use a non-root user if desired
 EXPOSE 80
 
+RUN apt-get update && apt-get install -y libgssapi-krb5-2
+# Setting the db connection string
+ENV ConnectionStrings__DefaultConnection="Host=ffpostgres;Port=5432;Database=postgres;Username=ffdb;Password="
+
 # Set the entry point
 ENTRYPOINT ["dotnet", "Finefolio.ValuationApi.dll"]
