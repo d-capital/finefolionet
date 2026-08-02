@@ -32,6 +32,7 @@ builder.Services.AddSingleton<ICookieConsentRepository, CookieConsentRepository>
 builder.Services.AddSingleton<IValuationService, ValuationService>();
 builder.Services.AddSingleton<IAssetFundamentalsService, AssetFundamentalsService>();
 builder.Services.AddSingleton<ICookieConsentService, CookieConsentService>();
+builder.Services.AddHostedService<KafkaConsumerBackgroundService>();
 
 // Register price providers and HTTP clients
 builder.Services.AddHttpClient("moex");
