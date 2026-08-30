@@ -19,6 +19,15 @@ public class ValuationController : ControllerBase
     public async Task<IActionResult> Get(string lang, string exchange, string ticker)
     {
         Console.WriteLine($"Requested valuation for {lang},{exchange},{ticker}");
+        var val = await _service.GetDcfValuationAsync(exchange, ticker, lang);
+        if (val == null) return NotFound();
+        return Ok(val);
+    }
+
+    [HttpGet("dcf/{lang}/{exchange}/{ticker}")]
+    public async Task<IActionResult> GetDcf(string lang, string exchange, string ticker)
+    {
+        Console.WriteLine($"Requested DCF valuation for {lang},{exchange},{ticker}");
         var val = await _service.GetValuationAsync(exchange, ticker, lang);
         if (val == null) return NotFound();
         return Ok(val);
