@@ -185,18 +185,18 @@ public class ValuationService : IValuationService
 
     public async Task<double?> GetDcfValuationAsync(string exchange, string ticker, string lang)
     {
+        var assetDto = await _repository.GetAssetDataAsync(exchange, ticker, lang);
+        double beta = (double)(assetDto?.Beta ?? 1.0m);
         // Await the CAPM calculation to get a decimal value
         decimal capm;
         if (exchange == "MOEX")
         {
-            capm = await CalculateCapm(exchange, ticker, 0.10m, 0.13m, 1.0);
+            capm = await CalculateCapm(exchange, ticker, 0.10m, 0.13m, beta);
         }
         else
         {
-            capm = await CalculateCapm(exchange, ticker, 0.10m, 0.04m, 1.0);
+            capm = await CalculateCapm(exchange, ticker, 0.10m, 0.04m, beta);
         }
-
-        var assetDto = await _repository.GetAssetDataAsync(exchange, ticker, lang);
 
         var netProfitHistory = null as IEnumerable<NetProfitHistoryDto>;
         if (assetDto != null)

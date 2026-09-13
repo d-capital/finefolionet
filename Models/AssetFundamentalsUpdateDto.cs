@@ -3,6 +3,7 @@ namespace Finefolio.ValuationApi.Models;
 public class AssetFundamentalsUpdateDto
 {
     public decimal? EarningsPerShareBasicTtm { get; set; }
+    public decimal? Beta { get; set; }
     public decimal? Debt { get; set; }
     public decimal? Equity { get; set; }
     public decimal? FreeCashFlowFy { get; set; }
@@ -12,6 +13,7 @@ public class AssetFundamentalsUpdateDto
 
     public bool HasAnyValue =>
         EarningsPerShareBasicTtm.HasValue ||
+        Beta.HasValue ||
         Debt.HasValue ||
         Equity.HasValue ||
         FreeCashFlowFy.HasValue ||

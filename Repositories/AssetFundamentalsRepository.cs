@@ -33,6 +33,7 @@ public class AssetFundamentalsRepository : IAssetFundamentalsRepository
         const string sql = @"
             UPDATE asset
             SET earnings_per_share_basic_ttm = COALESCE(@earningsPerShareBasicTtm, earnings_per_share_basic_ttm),
+                beta = COALESCE(@beta, beta),
                 debt = COALESCE(@debt, debt),
                 equity = COALESCE(@equity, equity),
                 free_cash_flow_fy = COALESCE(@freeCashFlowFy, free_cash_flow_fy),
@@ -45,6 +46,7 @@ public class AssetFundamentalsRepository : IAssetFundamentalsRepository
         {
             assetId,
             earningsPerShareBasicTtm = request.EarningsPerShareBasicTtm,
+            beta = request.Beta,
             debt = request.Debt,
             equity = request.Equity,
             freeCashFlowFy = request.FreeCashFlowFy,
