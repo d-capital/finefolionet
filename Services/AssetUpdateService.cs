@@ -118,6 +118,7 @@ public class AssetUpdateService : IAssetUpdateService
                     DateTime.UtcNow,
                     quote?.MarketCapBasic,
                     quote?.EarningsPerShareBasicTtm,
+                    quote?.Beta,
                     quote?.PriceEarningsTtm,
                     quote?.DividendsYield,
                     quote?.FreeCashFlowFy,

@@ -9,6 +9,7 @@ public class TradingViewQuote
     public string? Sector { get; set; }
     public string? Industry { get; set; }
     public decimal? EarningsPerShareBasicTtm { get; set; }
+    public decimal? Beta { get; set; }
     public decimal? PriceEarningsTtm { get; set; }
     public decimal? DividendsYield { get; set; }
     public decimal? FreeCashFlowFy { get; set; }

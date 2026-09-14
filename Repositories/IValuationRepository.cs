@@ -17,6 +17,7 @@ public interface IValuationRepository
         DateTime? closeLastUpdated,
         decimal? marketCapBasic,
         decimal? earningsPerShareBasicTtm,
+        decimal? beta,
         decimal? priceEarningsTtm,
         decimal? dividendsYield,
         decimal? freeCashFlowFy,
