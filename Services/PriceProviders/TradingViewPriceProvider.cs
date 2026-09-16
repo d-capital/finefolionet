@@ -52,6 +52,7 @@ namespace Finefolio.ValuationApi.Services.PriceProviders
                 "close",
                 "country",
                 "market_cap_basic",
+                "total_shares_outstanding_fundamental",
                 "sector",
                 "industry",
                 "earnings_per_share_basic_ttm",
@@ -132,6 +133,7 @@ namespace Finefolio.ValuationApi.Services.PriceProviders
                     Country = ParseString(values, columns, "country"),
                     Close = ParseDecimal(values, columns, "close"),
                     MarketCapBasic = ParseDecimal(values, columns, "market_cap_basic"),
+                    TotalSharesOutstandingFundamental = ParseLong(values, columns, "total_shares_outstanding_fundamental"),
                     Sector = ParseString(values, columns, "sector"),
                     Industry = ParseString(values, columns, "industry"),
                     EarningsPerShareBasicTtm = ParseDecimal(values, columns, "earnings_per_share_basic_ttm"),
@@ -163,6 +165,17 @@ namespace Finefolio.ValuationApi.Services.PriceProviders
             if (element.ValueKind == JsonValueKind.Null) return null;
             if (element.ValueKind == JsonValueKind.Number && element.TryGetDecimal(out var value)) return value;
             if (element.ValueKind == JsonValueKind.String && decimal.TryParse(element.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed)) return parsed;
+            return null;
+        }
+
+        private static long? ParseLong(JsonElement[] values, string[] columns, string columnName)
+        {
+            var index = Array.IndexOf(columns, columnName);
+            if (index < 0 || index >= values.Length) return null;
+            var element = values[index];
+            if (element.ValueKind == JsonValueKind.Null) return null;
+            if (element.ValueKind == JsonValueKind.Number && element.TryGetInt64(out var value)) return value;
+            if (element.ValueKind == JsonValueKind.String && long.TryParse(element.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)) return parsed;
             return null;
         }
 

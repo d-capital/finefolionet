@@ -16,6 +16,7 @@ public interface IValuationRepository
         decimal? close,
         DateTime? closeLastUpdated,
         decimal? marketCapBasic,
+        long? totalSharesOutstandingFundamental,
         decimal? earningsPerShareBasicTtm,
         decimal? beta,
         decimal? priceEarningsTtm,
