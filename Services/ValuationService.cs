@@ -82,7 +82,7 @@ public class ValuationService : IValuationService
             DividendYield = assetDto?.DividendsYield ?? 0,
             FreeCashFlow = assetDto?.FreeCashFlowFy ?? 0,
             DebtToEquity = debtToEquity,
-            InerestExpense = assetDto?.InterestExpense ?? 0
+            InterestExpense = assetDto?.InterestExpense ?? 0
         };
 
         AverageGrowthDto? averageGrowth = null;
@@ -117,9 +117,14 @@ public class ValuationService : IValuationService
 
     public async Task<decimal> CalculateMarketValueOfDebt(decimal totalDebt, decimal interestExpense, decimal interestRateOnDebt, int numberOfYears)
     {
-        if (totalDebt == 0 || interestExpense == 0)
+        if (totalDebt <= 0 || interestExpense == 0)
         {
             return 0m;
+        }
+
+        if (interestRateOnDebt <= 0)
+        {
+            return totalDebt;
         }
 
         // Avoid passing decimal to Math.Pow by converting interestRateOnDebt to double
@@ -137,13 +142,29 @@ public class ValuationService : IValuationService
 
     public async Task<decimal> CalculateWacc(decimal equityValue, decimal debtValue, decimal taxRate, decimal costOfEquity, decimal costOfDebt)
     {
-        decimal totalCapital = equityValue + debtValue;
-        decimal wacc = (equityValue / totalCapital) * costOfEquity + (debtValue / totalCapital) * costOfDebt * (1 - taxRate);
+        decimal nonNegativeEquityValue = Math.Max(equityValue, 0m);
+        decimal nonNegativeDebtValue = Math.Max(debtValue, 0m);
+        decimal totalCapital = nonNegativeEquityValue + nonNegativeDebtValue;
+        if (totalCapital == 0)
+        {
+            return 0m;
+        }
+
+        decimal wacc = (nonNegativeEquityValue / totalCapital) * costOfEquity
+            + (nonNegativeDebtValue / totalCapital) * costOfDebt * (1 - taxRate);
         return wacc;
     }
 
     public async Task<DcfDto> CalculateDcf(decimal fcf, double growthRate, int years, decimal discountRate, decimal terminalGrowth, decimal netDebt, decimal sharesOutstanding)
     {
+        double normalizedGrowthRate = Math.Abs(growthRate) > 1.0
+            ? growthRate / 100.0
+            : growthRate;
+
+        decimal normalizedTerminalGrowth = Math.Abs(terminalGrowth) > 1m
+            ? terminalGrowth / 100m
+            : terminalGrowth;
+
         decimal lastFcf = fcf;
         decimal enterpriseValue = 0m;
         decimal terminalValue = 0m;
@@ -154,9 +175,8 @@ public class ValuationService : IValuationService
         for (int year = 1; year <= years; year++)
         {
             decimal projectedFcf =
-                lastFcf * (decimal)Math.Pow(1 + growthRate, year);
+                lastFcf * (decimal)Math.Pow(1 + normalizedGrowthRate, year);
 
-            // Cast discountRate to double for Math.Pow to avoid decimal -> double implicit conversion error
             decimal discountFactor =
                 1m / (decimal)Math.Pow(1.0 + (double)discountRate, year);
 
@@ -171,11 +191,11 @@ public class ValuationService : IValuationService
             });
 
             // Terminal value in the final projection year
-            if (year == years)
+            if (year == years && discountRate > normalizedTerminalGrowth)
             {
                 terminalValue =
-                    projectedFcf * (1m + terminalGrowth) /
-                    (discountRate - terminalGrowth);
+                    projectedFcf * (1m + normalizedTerminalGrowth) /
+                    (discountRate - normalizedTerminalGrowth);
 
                 presentValueOfTerminalValue =
                     terminalValue / (decimal)Math.Pow(1.0 + (double)discountRate, years);
@@ -184,11 +204,10 @@ public class ValuationService : IValuationService
             }
         }
 
-        // Equity value
-        decimal equityValue = enterpriseValue + netDebt;
-
-        decimal fairValuePerShare =
-            equityValue / sharesOutstanding;
+        decimal equityValue = enterpriseValue - netDebt;
+        decimal fairValuePerShare = sharesOutstanding > 0
+            ? equityValue / sharesOutstanding
+            : 0m;
 
         DcfDto dcfDto = new DcfDto
         {
@@ -200,7 +219,7 @@ public class ValuationService : IValuationService
             Projections = projections
         };
 
-        return dcfDto; // equityValue, enterpriseValue;
+        return dcfDto;
     }
 
     public async Task<DcfResultDto?> GetDcfValuationAsync(string exchange, string ticker, string lang)

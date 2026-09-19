@@ -14,5 +14,5 @@ public class StockInfoDto
     public decimal? DividendYield { get; set; }
     public decimal? FreeCashFlow { get; set; }
     public decimal? DebtToEquity { get; set; }
-    public decimal? InerestExpense { get; set; }
+    public decimal? InterestExpense { get; set; }
 }
