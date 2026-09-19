@@ -22,6 +22,10 @@ public interface IValuationRepository
         decimal? priceEarningsTtm,
         decimal? dividendsYield,
         decimal? freeCashFlowFy,
-        decimal? debtToEquity);
+        decimal? debtToEquity,
+        decimal? interestRateOnDebt,
+        decimal? netDebt,
+        decimal? equity,
+        decimal? debt);
     Task UpsertNetIncomeAsync(int assetId, int year, double value);
 }

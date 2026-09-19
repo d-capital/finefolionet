@@ -100,7 +100,11 @@ public class ValuationRepository : IValuationRepository
         decimal? priceEarningsTtm,
         decimal? dividendsYield,
         decimal? freeCashFlowFy,
-        decimal? debtToEquity)
+        decimal? debtToEquity,
+        decimal? interestRateOnDebt,
+        decimal? netDebt,
+        decimal? equity,
+        decimal? debt)
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         const string sql = @"
@@ -116,7 +120,11 @@ public class ValuationRepository : IValuationRepository
                 price_earnings_ttm = COALESCE(@priceEarningsTtm, price_earnings_ttm),
                 dividends_yield = COALESCE(@dividendsYield, dividends_yield),
                 free_cash_flow_fy = COALESCE(@freeCashFlowFy, free_cash_flow_fy),
-                debt_to_equity = COALESCE(@debtToEquity, debt_to_equity)
+                debt_to_equity = COALESCE(@debtToEquity, debt_to_equity),
+                interest_rate_on_debt = COALESCE(@interestRateOnDebt, interest_rate_on_debt),
+                net_debt = COALESCE(@netDebt, net_debt),
+                equity = COALESCE(@equity, equity),
+                debt = COALESCE(@debt, debt)
             WHERE id = @assetId;";
 
         await conn.ExecuteAsync(sql, new
@@ -133,7 +141,11 @@ public class ValuationRepository : IValuationRepository
             priceEarningsTtm,
             dividendsYield,
             freeCashFlowFy,
-            debtToEquity
+            debtToEquity,
+            interestRateOnDebt,
+            netDebt,
+            equity,
+            debt
         });
     }
 

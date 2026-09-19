@@ -60,7 +60,11 @@ namespace Finefolio.ValuationApi.Services.PriceProviders
                 "price_earnings_ttm",
                 "dividends_yield",
                 "free_cash_flow_fy",
-                "debt_to_equity"
+                "debt_to_equity",
+                "effective_interest_rate_on_debt_fy",
+                "net_debt_fy",
+                "total_equity_fy",
+                "total_debt_fy"
             };
 
             var payload = new
@@ -141,7 +145,11 @@ namespace Finefolio.ValuationApi.Services.PriceProviders
                     PriceEarningsTtm = ParseDecimal(values, columns, "price_earnings_ttm"),
                     DividendsYield = ParseDecimal(values, columns, "dividends_yield"),
                     FreeCashFlowFy = ParseDecimal(values, columns, "free_cash_flow_fy"),
-                    DebtToEquity = ParseDecimal(values, columns, "debt_to_equity")
+                    DebtToEquity = ParseDecimal(values, columns, "debt_to_equity"),
+                    EffectiveInterestRateOnDebtFy = ParseDecimal(values, columns, "effective_interest_rate_on_debt_fy"),
+                    NetDebtFy = ParseDecimal(values, columns, "net_debt_fy"),
+                    TotalEquityFy = ParseDecimal(values, columns, "total_equity_fy"),
+                    TotalDebtFy = ParseDecimal(values, columns, "total_debt_fy")
                 };
             }
 

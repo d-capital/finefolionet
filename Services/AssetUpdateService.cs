@@ -123,7 +123,11 @@ public class AssetUpdateService : IAssetUpdateService
                     quote?.PriceEarningsTtm,
                     quote?.DividendsYield,
                     quote?.FreeCashFlowFy,
-                    quote?.DebtToEquity);
+                    quote?.DebtToEquity,
+                    quote?.EffectiveInterestRateOnDebtFy,
+                    quote?.NetDebtFy,
+                    quote?.TotalEquityFy,
+                    quote?.TotalDebtFy);
             }
         }
         catch

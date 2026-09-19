@@ -15,4 +15,8 @@ public class TradingViewQuote
     public decimal? DividendsYield { get; set; }
     public decimal? FreeCashFlowFy { get; set; }
     public decimal? DebtToEquity { get; set; }
+    public decimal? EffectiveInterestRateOnDebtFy { get; set; }
+    public decimal? NetDebtFy { get; set; }
+    public decimal? TotalEquityFy { get; set; }
+    public decimal? TotalDebtFy { get; set; }
 }
