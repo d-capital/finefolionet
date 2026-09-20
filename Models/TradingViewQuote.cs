@@ -6,11 +6,17 @@ public class TradingViewQuote
     public string? Country { get; set; }
     public decimal? Close { get; set; }
     public decimal? MarketCapBasic { get; set; }
+    public long? TotalSharesOutstandingFundamental { get; set; }
     public string? Sector { get; set; }
     public string? Industry { get; set; }
     public decimal? EarningsPerShareBasicTtm { get; set; }
+    public decimal? Beta { get; set; }
     public decimal? PriceEarningsTtm { get; set; }
     public decimal? DividendsYield { get; set; }
     public decimal? FreeCashFlowFy { get; set; }
     public decimal? DebtToEquity { get; set; }
+    public decimal? EffectiveInterestRateOnDebtFy { get; set; }
+    public decimal? NetDebtFy { get; set; }
+    public decimal? TotalEquityFy { get; set; }
+    public decimal? TotalDebtFy { get; set; }
 }

@@ -52,13 +52,19 @@ namespace Finefolio.ValuationApi.Services.PriceProviders
                 "close",
                 "country",
                 "market_cap_basic",
+                "total_shares_outstanding_fundamental",
                 "sector",
                 "industry",
                 "earnings_per_share_basic_ttm",
+                "beta_1_year",
                 "price_earnings_ttm",
                 "dividends_yield",
                 "free_cash_flow_fy",
-                "debt_to_equity"
+                "debt_to_equity",
+                "effective_interest_rate_on_debt_fy",
+                "net_debt_fy",
+                "total_equity_fy",
+                "total_debt_fy"
             };
 
             var payload = new
@@ -131,13 +137,19 @@ namespace Finefolio.ValuationApi.Services.PriceProviders
                     Country = ParseString(values, columns, "country"),
                     Close = ParseDecimal(values, columns, "close"),
                     MarketCapBasic = ParseDecimal(values, columns, "market_cap_basic"),
+                    TotalSharesOutstandingFundamental = ParseLong(values, columns, "total_shares_outstanding_fundamental"),
                     Sector = ParseString(values, columns, "sector"),
                     Industry = ParseString(values, columns, "industry"),
                     EarningsPerShareBasicTtm = ParseDecimal(values, columns, "earnings_per_share_basic_ttm"),
+                    Beta = ParseDecimal(values, columns, "beta_1_year"),
                     PriceEarningsTtm = ParseDecimal(values, columns, "price_earnings_ttm"),
                     DividendsYield = ParseDecimal(values, columns, "dividends_yield"),
                     FreeCashFlowFy = ParseDecimal(values, columns, "free_cash_flow_fy"),
-                    DebtToEquity = ParseDecimal(values, columns, "debt_to_equity")
+                    DebtToEquity = ParseDecimal(values, columns, "debt_to_equity"),
+                    EffectiveInterestRateOnDebtFy = ParseDecimal(values, columns, "effective_interest_rate_on_debt_fy"),
+                    NetDebtFy = ParseDecimal(values, columns, "net_debt_fy"),
+                    TotalEquityFy = ParseDecimal(values, columns, "total_equity_fy"),
+                    TotalDebtFy = ParseDecimal(values, columns, "total_debt_fy")
                 };
             }
 
@@ -161,6 +173,17 @@ namespace Finefolio.ValuationApi.Services.PriceProviders
             if (element.ValueKind == JsonValueKind.Null) return null;
             if (element.ValueKind == JsonValueKind.Number && element.TryGetDecimal(out var value)) return value;
             if (element.ValueKind == JsonValueKind.String && decimal.TryParse(element.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed)) return parsed;
+            return null;
+        }
+
+        private static long? ParseLong(JsonElement[] values, string[] columns, string columnName)
+        {
+            var index = Array.IndexOf(columns, columnName);
+            if (index < 0 || index >= values.Length) return null;
+            var element = values[index];
+            if (element.ValueKind == JsonValueKind.Null) return null;
+            if (element.ValueKind == JsonValueKind.Number && element.TryGetInt64(out var value)) return value;
+            if (element.ValueKind == JsonValueKind.String && long.TryParse(element.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)) return parsed;
             return null;
         }
 

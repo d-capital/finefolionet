@@ -24,6 +24,15 @@ public class ValuationController : ControllerBase
         return Ok(val);
     }
 
+    [HttpGet("dcf/{lang}/{exchange}/{ticker}")]
+    public async Task<IActionResult> GetDcf(string lang, string exchange, string ticker)
+    {
+        Console.WriteLine($"Requested DCF valuation for {lang},{exchange},{ticker}");
+        var val = await _service.GetDcfValuationAsync(exchange, ticker, lang);
+        if (val == null) return NotFound();
+        return Ok(val);
+    }
+
     [HttpPost("{exchange}/{ticker}/net-income")]
     public async Task<IActionResult> PostNetIncome(string exchange, string ticker, [FromBody] NetIncomeUpdateDto dto)
     {

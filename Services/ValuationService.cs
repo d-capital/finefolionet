@@ -81,7 +81,8 @@ public class ValuationService : IValuationService
             PeTtm = peTtm,
             DividendYield = assetDto?.DividendsYield ?? 0,
             FreeCashFlow = assetDto?.FreeCashFlowFy ?? 0,
-            DebtToEquity = debtToEquity
+            DebtToEquity = debtToEquity,
+            InterestExpense = assetDto?.InterestExpense ?? 0
         };
 
         AverageGrowthDto? averageGrowth = null;
@@ -106,6 +107,240 @@ public class ValuationService : IValuationService
             IsPreviousDayData = isPreviousDayData
         };
     }
+
+
+    public async Task<decimal> CalculateCapm(string exchange, string ticker, decimal rm, decimal rf, double beta)
+    {
+        double expected = (double)rf + beta * ((double)rm - (double)rf);
+        return (decimal)expected;
+    }
+
+    public async Task<decimal> CalculateMarketValueOfDebt(decimal totalDebt, decimal interestExpense, decimal interestRateOnDebt, int numberOfYears)
+    {
+        if (totalDebt <= 0 || interestExpense == 0)
+        {
+            return 0m;
+        }
+
+        if (interestRateOnDebt <= 0)
+        {
+            return totalDebt;
+        }
+
+        // Avoid passing decimal to Math.Pow by converting interestRateOnDebt to double
+        double rateDouble = (double)interestRateOnDebt;
+        double discountFactorNeg = Math.Pow(1.0 + rateDouble, -numberOfYears);
+        double discountFactorPos = Math.Pow(1.0 + rateDouble, numberOfYears);
+
+        // Convert back to decimal for the rest of the calculation
+        decimal dfNeg = (decimal)discountFactorNeg;
+        decimal dfPos = (decimal)discountFactorPos;
+
+        var marketValueOfDebt = (interestExpense * (1 - dfNeg) / interestRateOnDebt) + (totalDebt / dfPos);
+        return marketValueOfDebt;
+    }
+
+    public async Task<decimal> CalculateWacc(decimal equityValue, decimal debtValue, decimal taxRate, decimal costOfEquity, decimal costOfDebt)
+    {
+        decimal nonNegativeEquityValue = Math.Max(equityValue, 0m);
+        decimal nonNegativeDebtValue = Math.Max(debtValue, 0m);
+        decimal totalCapital = nonNegativeEquityValue + nonNegativeDebtValue;
+        if (totalCapital == 0)
+        {
+            return 0m;
+        }
+
+        decimal wacc = (nonNegativeEquityValue / totalCapital) * costOfEquity
+            + (nonNegativeDebtValue / totalCapital) * costOfDebt * (1 - taxRate);
+        return wacc;
+    }
+
+    public async Task<DcfDto> CalculateDcf(decimal fcf, double growthRate, int years, decimal discountRate, decimal terminalGrowth, decimal netDebt, decimal sharesOutstanding)
+    {
+        double normalizedGrowthRate = Math.Abs(growthRate) > 1.0
+            ? growthRate / 100.0
+            : growthRate;
+
+        decimal normalizedTerminalGrowth = Math.Abs(terminalGrowth) > 1m
+            ? terminalGrowth / 100m
+            : terminalGrowth;
+
+        decimal lastFcf = fcf;
+        decimal enterpriseValue = 0m;
+        decimal terminalValue = 0m;
+        decimal presentValueOfTerminalValue = 0m;
+        var projections = new List<DcfProjectionDto>();
+
+        // Project and discount FCF
+        for (int year = 1; year <= years; year++)
+        {
+            decimal projectedFcf =
+                lastFcf * (decimal)Math.Pow(1 + normalizedGrowthRate, year);
+
+            decimal discountFactor =
+                1m / (decimal)Math.Pow(1.0 + (double)discountRate, year);
+
+            decimal pvFcf = projectedFcf * discountFactor;
+
+            enterpriseValue += pvFcf;
+            projections.Add(new DcfProjectionDto
+            {
+                Year = year,
+                ProjectedFcf = projectedFcf,
+                PresentValue = pvFcf
+            });
+
+            // Terminal value in the final projection year
+            if (year == years && discountRate > normalizedTerminalGrowth)
+            {
+                terminalValue =
+                    projectedFcf * (1m + normalizedTerminalGrowth) /
+                    (discountRate - normalizedTerminalGrowth);
+
+                presentValueOfTerminalValue =
+                    terminalValue / (decimal)Math.Pow(1.0 + (double)discountRate, years);
+
+                enterpriseValue += presentValueOfTerminalValue;
+            }
+        }
+
+        decimal equityValue = enterpriseValue - netDebt;
+        decimal fairValuePerShare = sharesOutstanding > 0
+            ? equityValue / sharesOutstanding
+            : 0m;
+
+        DcfDto dcfDto = new DcfDto
+        {
+            EnterpriseValue = enterpriseValue,
+            EquityValue = equityValue,
+            FairValue = fairValuePerShare,
+            TerminalValue = terminalValue,
+            PresentValueOfTerminalValue = presentValueOfTerminalValue,
+            Projections = projections
+        };
+
+        return dcfDto;
+    }
+
+    public async Task<DcfResultDto?> GetDcfValuationAsync(string exchange, string ticker, string lang)
+    {
+        var assetDto = await _repository.GetAssetDataAsync(exchange, ticker, lang);
+        double beta = (double)(assetDto?.Beta ?? 1.0m);
+        // Await the CAPM calculation to get a decimal value
+        decimal capm;
+        decimal riskFreeRate = 0m;
+        decimal marketRate = 0m;
+        if (exchange == "MOEX")
+        {
+            riskFreeRate = 0.13m;
+            marketRate = 0.10m;
+        }
+        else
+        {
+            riskFreeRate = 0.04m;
+            marketRate = 0.10m;
+        }
+        capm = await CalculateCapm(exchange, ticker, marketRate, riskFreeRate, beta);
+
+        var netProfitHistory = null as IEnumerable<NetProfitHistoryDto>;
+        if (assetDto != null)
+        {
+            netProfitHistory = await _repository.GetNetIncomeHistoryAsync(assetDto.Id);
+        }
+
+        var price = 0m;
+        if (!string.IsNullOrEmpty(exchange) && !string.IsNullOrEmpty(ticker))
+        {
+            try
+            {
+                var priceResult = await _priceService.GetPriceAsync(exchange, ticker);
+                price = priceResult.Price;
+            }
+            catch
+            {
+                price = assetDto?.Close ?? 0m;
+            }
+        }
+
+        var country = assetDto?.Country ?? string.Empty;
+        var capitalization = assetDto?.MarketCapBasic ?? 0;
+        var peTtm = assetDto?.PriceEarningsTtm ?? 0;
+        var debtToEquity = assetDto?.DebtToEquity ?? 0;
+        if (exchange == "MOEX")
+        {
+            country = "Russia";
+            capitalization = assetDto?.Issue * assetDto?.Close ?? 0;
+            peTtm = assetDto?.Close / assetDto?.EarningsPerShareBasicTtm ?? 0;
+            debtToEquity = assetDto?.Equity != 0 ? assetDto?.Debt / assetDto?.Equity ?? 0 : 0;
+        }
+
+        var effectivePrice = price > 0 ? price : assetDto?.Close ?? 0m;
+
+        decimal interestExpense = assetDto?.InterestExpense ?? 0;
+        decimal totalDebt = assetDto?.Debt ?? 0;
+        decimal interestRateOnDebt = assetDto?.InterestRateOnDebt ?? 0;
+        int numberOfYears = 3; // Example number of years for DCF calculation
+
+        // Await the debt market value calculation
+        var debtValue = await CalculateMarketValueOfDebt(totalDebt, interestExpense, interestRateOnDebt, numberOfYears);
+
+        decimal taxRate = 0.21m;
+        // Await the WACC calculation
+        var wacc = await CalculateWacc(capitalization, debtValue, taxRate, capm, interestRateOnDebt);
+
+        AverageGrowthDto? averageGrowth = null;
+        if (netProfitHistory != null)
+        {
+            averageGrowth = CalculateAverageGrowth(netProfitHistory.ToList());
+        }
+
+        decimal terminalGrowth = 0.0m;
+        if (exchange == "MOEX")
+        {
+            terminalGrowth = 0.043m; // Russian GDP Growth Rate 2024
+        }
+        else 
+        {
+            terminalGrowth = 0.028m; // US GDP Growth Rate 2024
+        }
+
+        // Await the async DCF calculation and convert decimal -> double?
+        DcfDto dcf = await CalculateDcf(
+            assetDto?.FreeCashFlowFy ?? 0,
+            averageGrowth?.FiveYears ?? 0,
+            3,
+            wacc,
+            terminalGrowth,
+            assetDto?.NetDebt ?? 0,
+            assetDto?.Issue ?? 0
+        );
+
+        DcfResultDto dcfResultDto = new DcfResultDto
+        {
+            Beta = (double?)assetDto?.Beta,
+            RiskFreeRate = (double?)riskFreeRate,
+            MarketRate = (double?)marketRate,
+            Capm = (double?)capm,
+            Equity = (double?)assetDto?.Equity,
+            Debt = (double?)assetDto?.Debt,
+            TaxRate = (double?)taxRate,
+            InterestRateOnDebt = (double?)assetDto?.InterestRateOnDebt,
+            AverageGrowthRate = averageGrowth?.FiveYears,
+            TerminalGrowthRate = (double?)terminalGrowth,
+            EnterpriseValue = (double?)dcf.EnterpriseValue,
+            NetDebt = (double?)assetDto?.NetDebt,
+            EquityValue = (double?)dcf.EquityValue,
+            SharesOutstanding =assetDto?.Issue,
+            FairValue = (double?)dcf.FairValue,
+            MarketValueOfDebt = (double)debtValue,
+            Wacc = (double)wacc,
+            TerminalValue = (double?)dcf.TerminalValue,
+            PresentValueOfTerminalValue = (double?)dcf.PresentValueOfTerminalValue,
+            Projections = dcf.Projections
+        };
+        return dcfResultDto;
+    }
+
     public static double CalculateCagr(double beginningValue, double endingValue, double numberOfYears)
     {
         if (numberOfYears <= 0)

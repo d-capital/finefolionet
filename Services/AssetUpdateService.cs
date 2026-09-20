@@ -117,11 +117,17 @@ public class AssetUpdateService : IAssetUpdateService
                     quote?.Close,
                     DateTime.UtcNow,
                     quote?.MarketCapBasic,
+                    quote?.TotalSharesOutstandingFundamental,
                     quote?.EarningsPerShareBasicTtm,
+                    quote?.Beta,
                     quote?.PriceEarningsTtm,
                     quote?.DividendsYield,
                     quote?.FreeCashFlowFy,
-                    quote?.DebtToEquity);
+                    quote?.DebtToEquity,
+                    quote?.EffectiveInterestRateOnDebtFy,
+                    quote?.NetDebtFy,
+                    quote?.TotalEquityFy,
+                    quote?.TotalDebtFy);
             }
         }
         catch
