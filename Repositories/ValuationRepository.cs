@@ -23,33 +23,48 @@ public class ValuationRepository : IValuationRepository
     public async Task<IReadOnlyList<StockScreenerCandidateResponse>> GetScreenerCandidatesAsync(
         decimal maxPe,
         decimal minDividend,
+        string? exchange,
         CancellationToken cancellationToken)
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         const string sql = @"
             SELECT
-                ticker,
-                exchange,
-                close AS price,
-                price_earnings_ttm AS pe,
-                earnings_per_share_basic_ttm AS eps
-            FROM asset
-            WHERE market_cap_basic BETWEEN 0 AND 5000000000
-              AND price_earnings_ttm <= @maxPe
-              AND earnings_per_share_basic_ttm > 15
-              AND dividends_yield >= @minDividend
-              AND debt_to_equity < 0.5
-            ORDER BY earnings_per_share_basic_ttm DESC, ticker, exchange
+                a.ticker,
+                a.exchange,
+                a.close AS price,
+                a.price_earnings_ttm AS pe,
+                a.earnings_per_share_basic_ttm AS eps
+            FROM asset a
+            WHERE a.market_cap_basic BETWEEN 0 AND 5000000000
+              AND a.price_earnings_ttm <= @maxPe
+              AND a.earnings_per_share_basic_ttm > 15
+              AND a.dividends_yield >= @minDividend
+              AND a.debt_to_equity < 0.5
+              AND (@exchange IS NULL OR upper(a.exchange) = upper(@exchange))
+              AND EXISTS (
+                  SELECT 1
+                  FROM net_income latest
+                  JOIN net_income five_years_ago
+                    ON five_years_ago.asset_id = latest.asset_id
+                   AND five_years_ago.year = latest.year - 4
+                  WHERE latest.asset_id = a.id
+                    AND latest.year = (
+                        SELECT MAX(history.year)
+                        FROM net_income history
+                        WHERE history.asset_id = a.id
+                    )
+                    AND latest.value > five_years_ago.value
+              )
+            ORDER BY a.earnings_per_share_basic_ttm DESC, a.ticker, a.exchange
             LIMIT 10;";
 
         var command = new CommandDefinition(
             sql,
-            new { maxPe, minDividend },
+            new { maxPe, minDividend, exchange },
             cancellationToken: cancellationToken);
         var candidates = await conn.QueryAsync<StockScreenerCandidateResponse>(command);
         return candidates.AsList();
     }
-
     public async Task<AssetDto?> GetAssetDataAsync(string exchange, string ticker, string lang) 
     { 
         await using var conn = new NpgsqlConnection(_connectionString); 

@@ -7,6 +7,7 @@ public interface IValuationRepository
     Task<IReadOnlyList<StockScreenerCandidateResponse>> GetScreenerCandidatesAsync(
         decimal maxPe,
         decimal minDividend,
+        string? exchange,
         CancellationToken cancellationToken);
     Task<AssetDto?> GetAssetDataAsync(string exchange, string ticker, string lang);
     Task<IList<NetProfitHistoryDto>> GetNetIncomeHistoryAsync(int assetId);

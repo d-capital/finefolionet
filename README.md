@@ -8,11 +8,14 @@ Stock screener
 
 `GET {url}/valuation/screener?maxPe=20&minDividend=2`
 
-Returns up to ten candidates from all available exchanges, ranked by EPS
-descending. Candidates have a market capitalization from 0 through 5 billion,
-P/E no greater than `maxPe`, EPS greater than 15, dividend yield at least
-`minDividend`, and debt-to-equity below 0.5. The response includes ticker,
-exchange, price, P/E, and EPS.
+Optionally restrict results to one exchange with `&exchange=NASDAQ`; omit the
+parameter (or leave it blank) to search all exchanges. Returns up to ten
+candidates ranked by EPS descending. Candidates have a market capitalization
+from 0 through 5 billion, P/E no greater than `maxPe`, EPS greater than 15,
+dividend yield at least `minDividend`, and debt-to-equity below 0.5. They must
+also have net-income data for the latest reported year and exactly five years
+before it, with the latest value greater than the earlier value. The response
+includes ticker, exchange, price, P/E, and EPS.
 
 Quick start
 
