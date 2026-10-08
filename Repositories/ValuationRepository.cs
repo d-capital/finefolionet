@@ -20,6 +20,36 @@ public class ValuationRepository : IValuationRepository
             ?? throw new InvalidOperationException("DefaultConnection is not configured.");
     }
 
+    public async Task<IReadOnlyList<StockScreenerCandidateResponse>> GetScreenerCandidatesAsync(
+        decimal maxPe,
+        decimal minDividend,
+        CancellationToken cancellationToken)
+    {
+        await using var conn = new NpgsqlConnection(_connectionString);
+        const string sql = @"
+            SELECT
+                ticker,
+                exchange,
+                close AS price,
+                price_earnings_ttm AS pe,
+                earnings_per_share_basic_ttm AS eps
+            FROM asset
+            WHERE market_cap_basic BETWEEN 0 AND 5000000000
+              AND price_earnings_ttm <= @maxPe
+              AND earnings_per_share_basic_ttm > 15
+              AND dividends_yield >= @minDividend
+              AND debt_to_equity < 0.5
+            ORDER BY earnings_per_share_basic_ttm DESC, ticker, exchange
+            LIMIT 10;";
+
+        var command = new CommandDefinition(
+            sql,
+            new { maxPe, minDividend },
+            cancellationToken: cancellationToken);
+        var candidates = await conn.QueryAsync<StockScreenerCandidateResponse>(command);
+        return candidates.AsList();
+    }
+
     public async Task<AssetDto?> GetAssetDataAsync(string exchange, string ticker, string lang) 
     { 
         await using var conn = new NpgsqlConnection(_connectionString); 

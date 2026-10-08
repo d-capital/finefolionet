@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Finefolio.ValuationApi.Services;
 using Finefolio.ValuationApi.Models;
 
@@ -13,6 +14,20 @@ public class ValuationController : ControllerBase
     public ValuationController(IValuationService service)
     {
         _service = service;
+    }
+
+    /// <summary>
+    /// Returns up to ten stocks matching the requested screening thresholds, ranked by EPS.
+    /// </summary>
+    [HttpGet("screener")]
+    [ProducesResponseType(typeof(IReadOnlyList<StockScreenerCandidateResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<StockScreenerCandidateResponse>>> GetScreenerCandidates(
+        [FromQuery, BindRequired] decimal maxPe,
+        [FromQuery, BindRequired] decimal minDividend,
+        CancellationToken cancellationToken)
+    {
+        var candidates = await _service.GetScreenerCandidatesAsync(maxPe, minDividend, cancellationToken);
+        return Ok(candidates);
     }
 
     [HttpGet("{lang}/{exchange}/{ticker}")]

@@ -14,6 +14,14 @@ public class ValuationService : IValuationService
         _priceService = priceService;
     }
 
+    public async Task<IReadOnlyList<StockScreenerCandidateResponse>> GetScreenerCandidatesAsync(
+        decimal maxPe,
+        decimal minDividend,
+        CancellationToken cancellationToken)
+    {
+        return await _repository.GetScreenerCandidatesAsync(maxPe, minDividend, cancellationToken);
+    }
+
     public async Task<ValuationResultDto?> GetValuationAsync(string exchange, string ticker, string lang)
     {
         var assetDto = await _repository.GetAssetDataAsync(exchange, ticker, lang);
