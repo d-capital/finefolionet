@@ -15,13 +15,12 @@ public class ValuationService : IValuationService
     }
 
     public async Task<IReadOnlyList<StockScreenerCandidateResponse>> GetScreenerCandidatesAsync(
-        decimal maxPe,
         decimal minDividend,
         string? exchange,
         CancellationToken cancellationToken)
     {
         var exchangeFilter = string.IsNullOrWhiteSpace(exchange) ? null : exchange.Trim();
-        return await _repository.GetScreenerCandidatesAsync(maxPe, minDividend, exchangeFilter, cancellationToken);
+        return await _repository.GetScreenerCandidatesAsync(minDividend, exchangeFilter, cancellationToken);
     }
 
     public async Task<ValuationResultDto?> GetValuationAsync(string exchange, string ticker, string lang)

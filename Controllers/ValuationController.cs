@@ -22,12 +22,11 @@ public class ValuationController : ControllerBase
     [HttpGet("screener")]
     [ProducesResponseType(typeof(IReadOnlyList<StockScreenerCandidateResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<StockScreenerCandidateResponse>>> GetScreenerCandidates(
-        [FromQuery, BindRequired] decimal maxPe,
         [FromQuery, BindRequired] decimal minDividend,
         [FromQuery] string? exchange,
         CancellationToken cancellationToken)
     {
-        var candidates = await _service.GetScreenerCandidatesAsync(maxPe, minDividend, exchange, cancellationToken);
+        var candidates = await _service.GetScreenerCandidatesAsync( minDividend, exchange, cancellationToken);
         return Ok(candidates);
     }
 

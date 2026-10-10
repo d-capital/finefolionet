@@ -5,7 +5,6 @@ namespace Finefolio.ValuationApi.Services;
 public interface IValuationService
 {
     Task<IReadOnlyList<StockScreenerCandidateResponse>> GetScreenerCandidatesAsync(
-        decimal maxPe,
         decimal minDividend,
         string? exchange,
         CancellationToken cancellationToken);

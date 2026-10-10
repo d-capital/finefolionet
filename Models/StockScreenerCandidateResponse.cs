@@ -6,6 +6,5 @@ public class StockScreenerCandidateResponse
     public string? Ticker { get; set; }
     public string? Exchange { get; set; }
     public decimal? Price { get; set; }
-    public decimal? Pe { get; set; }
     public decimal? Eps { get; set; }
 }
