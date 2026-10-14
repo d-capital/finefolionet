@@ -22,6 +22,7 @@ public class ValuationRepository : IValuationRepository
 
     public async Task<IReadOnlyList<StockScreenerCandidateResponse>> GetScreenerCandidatesAsync(
         decimal minDividend,
+        decimal minEps,
         string? exchange,
         CancellationToken cancellationToken)
     {
@@ -33,7 +34,7 @@ public class ValuationRepository : IValuationRepository
                 a.close AS price,
                 a.earnings_per_share_basic_ttm AS eps
             FROM asset a
-            WHERE a.earnings_per_share_basic_ttm > 15
+            WHERE a.earnings_per_share_basic_ttm > @minEps
               AND a.dividends_yield >= @minDividend
               AND (@exchange IS NULL OR upper(a.exchange) = upper(@exchange))
               AND EXISTS (
@@ -55,7 +56,7 @@ public class ValuationRepository : IValuationRepository
 
         var command = new CommandDefinition(
             sql,
-            new { minDividend, exchange },
+            new { minDividend, minEps, exchange },
             cancellationToken: cancellationToken);
         var candidates = await conn.QueryAsync<StockScreenerCandidateResponse>(command);
         return candidates.AsList();

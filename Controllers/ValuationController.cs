@@ -24,9 +24,10 @@ public class ValuationController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<StockScreenerCandidateResponse>>> GetScreenerCandidates(
         [FromQuery, BindRequired] decimal minDividend,
         [FromQuery] string? exchange,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] decimal minEps = 15)
     {
-        var candidates = await _service.GetScreenerCandidatesAsync( minDividend, exchange, cancellationToken);
+        var candidates = await _service.GetScreenerCandidatesAsync(minDividend, minEps, exchange, cancellationToken);
         return Ok(candidates);
     }
 

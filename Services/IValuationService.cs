@@ -6,6 +6,7 @@ public interface IValuationService
 {
     Task<IReadOnlyList<StockScreenerCandidateResponse>> GetScreenerCandidatesAsync(
         decimal minDividend,
+        decimal minEps,
         string? exchange,
         CancellationToken cancellationToken);
     Task<ValuationResultDto?> GetValuationAsync(string exchange, string ticker, string lang);
