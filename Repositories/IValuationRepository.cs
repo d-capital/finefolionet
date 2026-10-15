@@ -4,6 +4,11 @@ namespace Finefolio.ValuationApi.Repositories;
 
 public interface IValuationRepository
 {
+    Task<IReadOnlyList<StockScreenerCandidateResponse>> GetScreenerCandidatesAsync(
+        decimal minDividend,
+        decimal minEps,
+        string? exchange,
+        CancellationToken cancellationToken);
     Task<AssetDto?> GetAssetDataAsync(string exchange, string ticker, string lang);
     Task<IList<NetProfitHistoryDto>> GetNetIncomeHistoryAsync(int assetId);
     Task<IList<AssetLabelDto>> GetAssetLabelsAsync(int assetId);
