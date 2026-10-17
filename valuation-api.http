@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:64663
+
+### Add or update a year's historical free cash flow
+POST {{baseUrl}}/valuation/NASDAQ/MSFT/free-cash-flow
+Content-Type: application/json
+
+{
+  "year": 2024,
+  "value": 72800
+}
+
+### Read DCF valuation using historical free-cash-flow growth
+GET {{baseUrl}}/valuation/dcf/en/NASDAQ/MSFT

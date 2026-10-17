@@ -92,6 +92,18 @@ public class ValuationRepository : IValuationRepository
         return result.ToList();
     }
 
+    public async Task<IList<FreeCashFlowHistoryDto>> GetFreeCashFlowHistoryAsync(int assetId)
+    {
+        await using var conn = new NpgsqlConnection(_connectionString);
+        const string sql = "SELECT * FROM sp_get_free_cash_flow_history(@p_asset_id);";
+
+        var result = await conn.QueryAsync<FreeCashFlowHistoryDto>(
+            sql,
+            new { p_asset_id = assetId });
+
+        return result.ToList();
+    }
+
     public async Task<IList<AssetLabelDto>> GetAssetLabelsAsync(int assetId) 
     { 
         await using var conn = new NpgsqlConnection(_connectionString); 
@@ -204,6 +216,18 @@ public class ValuationRepository : IValuationRepository
             SELECT @assetId, @year, @value
             WHERE NOT EXISTS (SELECT 1 FROM upsert);
         ";
+
+        await conn.ExecuteAsync(sql, new { assetId, year, value });
+    }
+
+    public async Task UpsertFreeCashFlowAsync(int assetId, int year, double value)
+    {
+        await using var conn = new NpgsqlConnection(_connectionString);
+        const string sql = @"
+            INSERT INTO free_cash_flow (asset_id, year, value)
+            VALUES (@assetId, @year, @value)
+            ON CONFLICT (asset_id, year)
+            DO UPDATE SET value = EXCLUDED.value;";
 
         await conn.ExecuteAsync(sql, new { assetId, year, value });
     }
