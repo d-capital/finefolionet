@@ -242,13 +242,13 @@ public class ValuationService : IValuationService
         decimal marketRate = 0m;
         if (exchange == "MOEX")
         {
-            riskFreeRate = 0.13m;
-            marketRate = 0.10m;
+            riskFreeRate = 0.1648m;
+            marketRate = 0.2498m;
         }
         else
         {
-            riskFreeRate = 0.04m;
-            marketRate = 0.10m;
+            riskFreeRate = 0.0496m;
+            marketRate = 0.0943m;
         }
         capm = await CalculateCapm(exchange, ticker, marketRate, riskFreeRate, beta);
 
