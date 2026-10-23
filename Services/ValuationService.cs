@@ -295,6 +295,10 @@ public class ValuationService : IValuationService
         var debtValue = await CalculateMarketValueOfDebt(totalDebt, interestExpense, interestRateOnDebt, numberOfYears);
 
         decimal taxRate = 0.21m;
+        if (exchange == "MOEX")
+        {
+            taxRate = 0.25m;
+        }
         // Await the WACC calculation
         var wacc = await CalculateWacc(capitalization, debtValue, taxRate, capm, interestRateOnDebt);
 
@@ -307,11 +311,11 @@ public class ValuationService : IValuationService
         decimal terminalGrowth = 0.0m;
         if (exchange == "MOEX")
         {
-            terminalGrowth = 0.043m; // Russian GDP Growth Rate 2024
+            terminalGrowth = 0.01m; // Russian GDP Growth Rate 2025
         }
         else 
         {
-            terminalGrowth = 0.028m; // US GDP Growth Rate 2024
+            terminalGrowth = 0.023m; // US GDP Growth Rate 2025
         }
 
         // Await the async DCF calculation and convert decimal -> double?
