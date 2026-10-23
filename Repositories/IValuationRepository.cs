@@ -11,6 +11,7 @@ public interface IValuationRepository
         CancellationToken cancellationToken);
     Task<AssetDto?> GetAssetDataAsync(string exchange, string ticker, string lang);
     Task<IList<NetProfitHistoryDto>> GetNetIncomeHistoryAsync(int assetId);
+    Task<IList<FreeCashFlowHistoryDto>> GetFreeCashFlowHistoryAsync(int assetId);
     Task<IList<AssetLabelDto>> GetAssetLabelsAsync(int assetId);
     Task<IList<AssetDto>> GetAssetsByExchangeAsync(string exchange);
     Task UpdateAssetPriceAsync(int assetId, decimal close, DateTime closeLastUpdated);
@@ -33,4 +34,5 @@ public interface IValuationRepository
         decimal? equity,
         decimal? debt);
     Task UpsertNetIncomeAsync(int assetId, int year, double value);
+    Task UpsertFreeCashFlowAsync(int assetId, int year, double value);
 }

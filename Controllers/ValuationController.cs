@@ -62,4 +62,17 @@ public class ValuationController : ControllerBase
         return Ok();
     }
 
+    [HttpPost("{exchange}/{ticker}/free-cash-flow")]
+    public async Task<IActionResult> PostFreeCashFlow(string exchange, string ticker, [FromBody] FreeCashFlowUpdateDto dto)
+    {
+        if (dto == null || dto.Year == null || dto.Value == null)
+        {
+            return BadRequest("Year and Value are required.");
+        }
+
+        var result = await _service.AddOrUpdateFreeCashFlowAsync(exchange, ticker, dto.Year.Value, dto.Value.Value);
+        if (!result) return NotFound();
+        return Ok();
+    }
+
 }

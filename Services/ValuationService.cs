@@ -252,10 +252,10 @@ public class ValuationService : IValuationService
         }
         capm = await CalculateCapm(exchange, ticker, marketRate, riskFreeRate, beta);
 
-        var netProfitHistory = null as IEnumerable<NetProfitHistoryDto>;
+        var freeCashFlowHistory = null as IEnumerable<FreeCashFlowHistoryDto>;
         if (assetDto != null)
         {
-            netProfitHistory = await _repository.GetNetIncomeHistoryAsync(assetDto.Id);
+            freeCashFlowHistory = await _repository.GetFreeCashFlowHistoryAsync(assetDto.Id);
         }
 
         var price = 0m;
@@ -299,9 +299,9 @@ public class ValuationService : IValuationService
         var wacc = await CalculateWacc(capitalization, debtValue, taxRate, capm, interestRateOnDebt);
 
         AverageGrowthDto? averageGrowth = null;
-        if (netProfitHistory != null)
+        if (freeCashFlowHistory != null)
         {
-            averageGrowth = CalculateAverageGrowth(netProfitHistory.ToList());
+            averageGrowth = CalculateAverageGrowth(freeCashFlowHistory.ToList());
         }
 
         decimal terminalGrowth = 0.0m;
@@ -407,10 +407,20 @@ public class ValuationService : IValuationService
 
     public static AverageGrowthDto CalculateAverageGrowth(List<NetProfitHistoryDto> history)
     {
-        // Ensure chronological order
-        history = history.OrderBy(x => x.Year).ToList();
+        return CalculateAverageGrowth(history.Select(item => (item.Year, item.Value)));
+    }
 
-        if (history.Count < 2)
+    public static AverageGrowthDto CalculateAverageGrowth(List<FreeCashFlowHistoryDto> history)
+    {
+        return CalculateAverageGrowth(history.Select(item => (item.Year, item.Value)));
+    }
+
+    private static AverageGrowthDto CalculateAverageGrowth(IEnumerable<(int? Year, double? Value)> history)
+    {
+        // Ensure chronological order
+        var orderedHistory = history.OrderBy(x => x.Year).ToList();
+
+        if (orderedHistory.Count < 2)
         {
             return new AverageGrowthDto
             {
@@ -423,10 +433,10 @@ public class ValuationService : IValuationService
         // Compute YoY growths (currently unused, but kept to match the Python implementation)
         var yoyGrowths = new List<double>();
 
-        for (int i = 1; i < history.Count; i++)
+        for (int i = 1; i < orderedHistory.Count; i++)
         {
-            double prev = history[i - 1].Value ?? 0;
-            double curr = history[i].Value ?? 0;
+            double prev = orderedHistory[i - 1].Value ?? 0;
+            double curr = orderedHistory[i].Value ?? 0;
 
             if (prev != 0)
             {
@@ -435,26 +445,26 @@ public class ValuationService : IValuationService
         }
 
         // Last year's CAGR (TTM)
-        double? ttmGrowth = history.Count >= 2
+        double? ttmGrowth = orderedHistory.Count >= 2
             ? CalculateCagr(
-                history[^2].Value ?? 0,
-                history[^1].Value ?? 0,
+                orderedHistory[^2].Value ?? 0,
+                orderedHistory[^1].Value ?? 0,
                 2)
             : null;
 
         // Three-year CAGR
-        double? threeYearsGrowth = history.Count >= 3
+        double? threeYearsGrowth = orderedHistory.Count >= 3
             ? CalculateCagr(
-                history[^3].Value ?? 0,
-                history[^1].Value ?? 0,
+                orderedHistory[^3].Value ?? 0,
+                orderedHistory[^1].Value ?? 0,
                 3)
             : null;
 
         // Five-year CAGR
-        double? fiveYearsGrowth = history.Count >= 5
+        double? fiveYearsGrowth = orderedHistory.Count >= 5
             ? CalculateCagr(
-                history[^5].Value ?? 0,
-                history[^1].Value ?? 0,
+                orderedHistory[^5].Value ?? 0,
+                orderedHistory[^1].Value ?? 0,
                 5)
             : null;
 
@@ -558,6 +568,15 @@ public class ValuationService : IValuationService
         if (assetDto == null) return false;
 
         await _repository.UpsertNetIncomeAsync(assetDto.Id, year, value);
+        return true;
+    }
+
+    public async Task<bool> AddOrUpdateFreeCashFlowAsync(string exchange, string ticker, int year, double value)
+    {
+        var assetDto = await _repository.GetAssetDataAsync(exchange, ticker, "en");
+        if (assetDto == null) return false;
+
+        await _repository.UpsertFreeCashFlowAsync(assetDto.Id, year, value);
         return true;
     }
 }

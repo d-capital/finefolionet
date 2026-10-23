@@ -18,6 +18,13 @@ also have net-income data for the latest reported year and exactly five years
 before it, with the latest value greater than the earlier value. The response
 includes ticker, exchange, price, P/E, and EPS.
 
+Historical free cash flow
+
+Use `POST {url}/valuation/{exchange}/{ticker}/free-cash-flow` to add or update an
+annual free-cash-flow value. The request body uses the `year` and `value` fields.
+DCF valuations use this history to calculate the average FCF growth rate used
+for projections.
+
 Quick start
 
 1. Ensure PostgreSQL is running and reachable. Update `appsettings.json` `ConnectionStrings:DefaultConnection` if needed.
