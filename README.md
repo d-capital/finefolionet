@@ -25,6 +25,14 @@ annual free-cash-flow value. The request body uses the `year` and `value` fields
 DCF valuations use this history to calculate the average FCF growth rate used
 for projections.
 
+Asset fundamentals
+
+Use `PATCH {url}/asset-fundamentals/{exchange}/{ticker}` to update asset
+fundamentals. The request may include `peg`, `netIncome5yCagr`, and
+`isBroadIndexPart`; omitted fields are left unchanged. These values are
+available in the valuation response (`valuation.peg`,
+`stockInfo.netIncome5yCagr`, and `stockInfo.isBroadIndexPart`).
+
 Quick start
 
 1. Ensure PostgreSQL is running and reachable. Update `appsettings.json` `ConnectionStrings:DefaultConnection` if needed.

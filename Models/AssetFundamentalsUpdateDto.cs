@@ -10,6 +10,9 @@ public class AssetFundamentalsUpdateDto
     public decimal? NetDebt { get; set; }
     public decimal? DividendsYield { get; set; }
     public decimal? InterestExpense { get; set; }
+    public double? Peg { get; set; }
+    public double? NetIncome5yCagr { get; set; }
+    public bool? IsBroadIndexPart { get; set; }
 
     public bool HasAnyValue =>
         EarningsPerShareBasicTtm.HasValue ||
@@ -19,5 +22,8 @@ public class AssetFundamentalsUpdateDto
         FreeCashFlowFy.HasValue ||
         NetDebt.HasValue ||
         DividendsYield.HasValue ||
-        InterestExpense.HasValue;
+        InterestExpense.HasValue ||
+        Peg.HasValue ||
+        NetIncome5yCagr.HasValue ||
+        IsBroadIndexPart.HasValue;
 }

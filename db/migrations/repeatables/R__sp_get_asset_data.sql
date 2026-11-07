@@ -23,7 +23,10 @@ RETURNS TABLE(
     debt double precision,
     net_debt double precision,
     debt_to_equity double precision,
-    interest_rate_on_debt double precision
+    interest_rate_on_debt double precision,
+    peg double precision,
+    net_income_5y_cagr double precision,
+    is_broad_index_part boolean
 )
 AS $$
     SELECT 
@@ -46,6 +49,9 @@ AS $$
     debt,
     net_debt,
     debt_to_equity,
-    interest_rate_on_debt
+    interest_rate_on_debt,
+    peg,
+    net_income_5y_cagr,
+    is_broad_index_part
     FROM asset WHERE exchange = p_exchange AND ticker = p_ticker;
 $$ LANGUAGE sql STABLE;
