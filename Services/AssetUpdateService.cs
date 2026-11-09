@@ -32,6 +32,11 @@ public class AssetUpdateService : IAssetUpdateService
         await UpdatePricesForExchangeAsync("MOEX", cancellationToken);
     }
 
+    public Task RecalculateBroadIndexMetricsAsync(CancellationToken cancellationToken)
+    {
+        return _repository.RecalculateBroadIndexMetricsAsync(cancellationToken);
+    }
+
     public async Task UpdatePricesForExchangeAsync(string exchange, CancellationToken cancellationToken)
     {
         if (exchange.Equals("MOEX", StringComparison.OrdinalIgnoreCase))

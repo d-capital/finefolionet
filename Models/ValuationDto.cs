@@ -10,4 +10,5 @@ public class ValuationDto
     public List<NetProfitHistoryDto>? NetProfitHistory { get; set; }
     public AverageGrowthDto? AvgGrowth { get; set; }
     public double? Peg { get; set; }
+    public double? AveragePeg { get; set; }
 }

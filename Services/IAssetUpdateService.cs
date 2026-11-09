@@ -7,4 +7,5 @@ public interface IAssetUpdateService
 {
     Task UpdatePricesAsync(CancellationToken cancellationToken);
     Task UpdatePricesForExchangeAsync(string exchange, CancellationToken cancellationToken);
+    Task RecalculateBroadIndexMetricsAsync(CancellationToken cancellationToken);
 }
