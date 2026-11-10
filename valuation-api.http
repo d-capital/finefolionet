@@ -11,3 +11,13 @@ Content-Type: application/json
 
 ### Read DCF valuation using historical free-cash-flow growth
 GET {{baseUrl}}/valuation/dcf/en/NASDAQ/MSFT
+
+### Update asset fundamentals and classification
+PATCH {{baseUrl}}/asset-fundamentals/NASDAQ/MSFT
+Content-Type: application/json
+
+{
+  "peg": 1.25,
+  "netIncome5yCagr": 12.5,
+  "isBroadIndexPart": true
+}

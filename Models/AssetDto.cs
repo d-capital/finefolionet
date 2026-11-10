@@ -22,4 +22,7 @@ public class AssetDto
     public decimal? NetDebt { get; set; }
     public decimal? DebtToEquity { get; set; }
     public decimal? InterestRateOnDebt { get; set; }
+    public double? Peg { get; set; }
+    public double? NetIncome5yCagr { get; set; }
+    public bool IsBroadIndexPart { get; set; }
 }

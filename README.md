@@ -25,6 +25,19 @@ annual free-cash-flow value. The request body uses the `year` and `value` fields
 DCF valuations use this history to calculate the average FCF growth rate used
 for projections.
 
+Asset fundamentals
+
+Use `PATCH {url}/asset-fundamentals/{exchange}/{ticker}` to update asset
+fundamentals. The request may include `peg`, `netIncome5yCagr`, and
+`isBroadIndexPart`; omitted fields are left unchanged. These values are
+available in the valuation response (`valuation.peg`,
+`valuation.averagePeg`,
+`stockInfo.netIncome5yCagr`, and `stockInfo.isBroadIndexPart`).
+For stocks marked as broad-index constituents, `valuation.averagePeg` is the
+average PEG of marked NYSE/NASDAQ stocks (S&P 500 group) or marked MOEX stocks,
+depending on the stock's exchange. The averages are stored separately and
+refreshed by the nightly metrics job. The individual `valuation.peg` is unchanged.
+
 Quick start
 
 1. Ensure PostgreSQL is running and reachable. Update `appsettings.json` `ConnectionStrings:DefaultConnection` if needed.
@@ -36,3 +49,6 @@ dotnet run --project valuation-api.csproj
 ```
 
 The app will apply SQL migrations from `db/migrations` using Evolve at startup.
+The hosted asset price update runs daily at 4:00 a.m. Moscow time. A separate
+hosted job recalculates net-income five-year CAGR and PEG for broad-index stocks
+daily at 4:30 a.m. Moscow time.

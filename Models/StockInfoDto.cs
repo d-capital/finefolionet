@@ -15,4 +15,6 @@ public class StockInfoDto
     public decimal? FreeCashFlow { get; set; }
     public decimal? DebtToEquity { get; set; }
     public decimal? InterestExpense { get; set; }
+    public double? NetIncome5yCagr { get; set; }
+    public bool IsBroadIndexPart { get; set; }
 }

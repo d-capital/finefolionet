@@ -92,7 +92,9 @@ public class ValuationService : IValuationService
             DividendYield = assetDto?.DividendsYield ?? 0,
             FreeCashFlow = assetDto?.FreeCashFlowFy ?? 0,
             DebtToEquity = debtToEquity,
-            InterestExpense = assetDto?.InterestExpense ?? 0
+            InterestExpense = assetDto?.InterestExpense ?? 0,
+            NetIncome5yCagr = assetDto?.NetIncome5yCagr,
+            IsBroadIndexPart = assetDto?.IsBroadIndexPart ?? false
         };
 
         AverageGrowthDto? averageGrowth = null;
@@ -107,6 +109,11 @@ public class ValuationService : IValuationService
             netProfitHistory?.ToList(),
             (double)stockInfo.Price,
             (double?)stockInfo.PeTtm);
+        valuation.Peg = assetDto?.Peg ?? valuation.Peg;
+        if (assetDto?.IsBroadIndexPart == true && assetDto.Exchange is not null)
+        {
+            valuation.AveragePeg = await _repository.GetAverageBroadIndexPegAsync(assetDto.Exchange);
+        }
 
         var isPreviousDayData = stockInfo.Price == 0;
 

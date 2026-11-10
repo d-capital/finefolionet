@@ -41,6 +41,7 @@ builder.Services.AddSingleton<ITradingViewPriceProvider, TradingViewPriceProvide
 builder.Services.AddSingleton<PriceService>();
 builder.Services.AddSingleton<IAssetUpdateService, AssetUpdateService>();
 builder.Services.AddHostedService<AssetUpdateBackgroundService>();
+builder.Services.AddHostedService<BroadIndexMetricsBackgroundService>();
 
 
 var app = builder.Build();

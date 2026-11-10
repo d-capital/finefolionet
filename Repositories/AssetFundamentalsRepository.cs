@@ -39,7 +39,10 @@ public class AssetFundamentalsRepository : IAssetFundamentalsRepository
                 free_cash_flow_fy = COALESCE(@freeCashFlowFy, free_cash_flow_fy),
                 net_debt = COALESCE(@netDebt, net_debt),
                 dividends_yield = COALESCE(@dividendsYield, dividends_yield),
-                interest_expense = COALESCE(@interestExpense, interest_expense)
+                interest_expense = COALESCE(@interestExpense, interest_expense),
+                peg = COALESCE(@peg, peg),
+                net_income_5y_cagr = COALESCE(@netIncome5yCagr, net_income_5y_cagr),
+                is_broad_index_part = COALESCE(@isBroadIndexPart, is_broad_index_part)
             WHERE id = @assetId;";
 
         var affected = await conn.ExecuteAsync(sql, new
@@ -52,7 +55,10 @@ public class AssetFundamentalsRepository : IAssetFundamentalsRepository
             freeCashFlowFy = request.FreeCashFlowFy,
             netDebt = request.NetDebt,
             dividendsYield = request.DividendsYield,
-            interestExpense = request.InterestExpense
+            interestExpense = request.InterestExpense,
+            peg = request.Peg,
+            netIncome5yCagr = request.NetIncome5yCagr,
+            isBroadIndexPart = request.IsBroadIndexPart
         });
 
         return affected > 0;

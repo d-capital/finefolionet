@@ -10,6 +10,7 @@ public interface IValuationRepository
         string? exchange,
         CancellationToken cancellationToken);
     Task<AssetDto?> GetAssetDataAsync(string exchange, string ticker, string lang);
+    Task<double?> GetAverageBroadIndexPegAsync(string exchange);
     Task<IList<NetProfitHistoryDto>> GetNetIncomeHistoryAsync(int assetId);
     Task<IList<FreeCashFlowHistoryDto>> GetFreeCashFlowHistoryAsync(int assetId);
     Task<IList<AssetLabelDto>> GetAssetLabelsAsync(int assetId);
@@ -33,6 +34,7 @@ public interface IValuationRepository
         decimal? netDebt,
         decimal? equity,
         decimal? debt);
+    Task RecalculateBroadIndexMetricsAsync(CancellationToken cancellationToken);
     Task UpsertNetIncomeAsync(int assetId, int year, double value);
     Task UpsertFreeCashFlowAsync(int assetId, int year, double value);
 }
