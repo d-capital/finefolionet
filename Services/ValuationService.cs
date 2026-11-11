@@ -110,7 +110,7 @@ public class ValuationService : IValuationService
             (double)stockInfo.Price,
             (double?)stockInfo.PeTtm);
         valuation.Peg = assetDto?.Peg ?? valuation.Peg;
-        if (assetDto?.IsBroadIndexPart == true && assetDto.Exchange is not null)
+        if (assetDto?.Exchange is not null)
         {
             valuation.AveragePeg = await _repository.GetAverageBroadIndexPegAsync(assetDto.Exchange);
         }
