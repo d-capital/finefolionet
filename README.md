@@ -6,17 +6,16 @@
 
 Stock screener
 
-`GET {url}/valuation/screener?maxPe=20&minDividend=2&minEps=15`
+`GET {url}/valuation/screener?minDividend=2&minEps=15`
 
 Optionally restrict results to one exchange with `&exchange=NASDAQ`; omit the
 parameter (or leave it blank) to search all exchanges. The `minEps` parameter
 filters for EPS greater than the supplied value and defaults to `15`. Returns up to ten
-candidates ranked by EPS descending. Candidates have a market capitalization
+candidates ranked by five-year net-income CAGR descending. Candidates have a market capitalization
 from 0 through 5 billion, P/E no greater than `maxPe`, EPS greater than `minEps`,
-dividend yield at least `minDividend`, and debt-to-equity below 0.5. They must
-also have net-income data for the latest reported year and exactly five years
-before it, with the latest value greater than the earlier value. The response
-includes ticker, exchange, price, P/E, and EPS.
+and dividend yield at least `minDividend`. They must also have a positive stored
+net-income five-year CAGR. The response includes the stock name, ticker,
+exchange, price, EPS, and `netIncome5yCagr` (a decimal rate, e.g. `0.12` for 12%).
 
 Historical free cash flow
 
@@ -33,6 +32,8 @@ fundamentals. The request may include `peg`, `netIncome5yCagr`, and
 available in the valuation response (`valuation.peg`,
 `valuation.averagePeg`,
 `stockInfo.netIncome5yCagr`, and `stockInfo.isBroadIndexPart`).
+The five-year net-income CAGR is calculated from the latest five available
+annual observations, matching the valuation UI.
 For stocks marked as broad-index constituents, `valuation.averagePeg` is the
 average PEG of marked NYSE/NASDAQ stocks (S&P 500 group) or marked MOEX stocks,
 depending on the stock's exchange. The averages are stored separately and
