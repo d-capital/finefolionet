@@ -29,29 +29,18 @@ public class ValuationRepository : IValuationRepository
         await using var conn = new NpgsqlConnection(_connectionString);
         const string sql = @"
             SELECT
+                a.description AS Name,
                 a.ticker,
                 a.exchange,
                 a.close AS price,
-                a.earnings_per_share_basic_ttm AS eps
+                a.earnings_per_share_basic_ttm AS eps,
+                a.net_income_5y_cagr AS NetIncome5yCagr
             FROM asset a
             WHERE a.earnings_per_share_basic_ttm > @minEps
               AND a.dividends_yield >= @minDividend
               AND (@exchange IS NULL OR upper(a.exchange) = upper(@exchange))
-              AND EXISTS (
-                  SELECT 1
-                  FROM net_income latest
-                  JOIN net_income five_years_ago
-                    ON five_years_ago.asset_id = latest.asset_id
-                   AND five_years_ago.year = latest.year - 4
-                  WHERE latest.asset_id = a.id
-                    AND latest.year = (
-                        SELECT MAX(history.year)
-                        FROM net_income history
-                        WHERE history.asset_id = a.id
-                    )
-                    AND latest.value > five_years_ago.value
-              )
-            ORDER BY a.earnings_per_share_basic_ttm DESC, a.ticker, a.exchange
+              AND a.net_income_5y_cagr > 0
+            ORDER BY a.net_income_5y_cagr DESC, a.ticker, a.exchange
             LIMIT 10;";
 
         var command = new CommandDefinition(
@@ -231,7 +220,6 @@ public class ValuationRepository : IValuationRepository
             latest_net_income AS (
                 SELECT DISTINCT ON (history.asset_id)
                     history.asset_id,
-                    history.year,
                     history.value
                 FROM net_income history
                 JOIN broad_assets ON broad_assets.id = history.asset_id
@@ -242,8 +230,8 @@ public class ValuationRepository : IValuationRepository
                     broad_assets.id,
                     asset.price_earnings_ttm,
                     CASE
-                        WHEN five_years_ago.value = 0 THEN 0.1::double precision
-                        ELSE five_years_ago.value
+                        WHEN fifth_observation.value = 0 THEN 0.1::double precision
+                        ELSE fifth_observation.value
                     END AS beginning_value,
                     latest.value AS ending_value
                 FROM broad_assets
@@ -253,10 +241,10 @@ public class ValuationRepository : IValuationRepository
                     SELECT history.value
                     FROM net_income history
                     WHERE history.asset_id = latest.asset_id
-                      AND history.year = latest.year - 5
-                    ORDER BY history.id DESC
+                    ORDER BY history.year DESC, history.id DESC
+                    OFFSET 4
                     LIMIT 1
-                ) five_years_ago ON TRUE
+                ) fifth_observation ON TRUE
             ),
             cagr_ratios AS (
                 SELECT
@@ -345,7 +333,10 @@ public class ValuationRepository : IValuationRepository
     public async Task UpsertNetIncomeAsync(int assetId, int year, double value)
     {
         await using var conn = new NpgsqlConnection(_connectionString);
-        const string sql = @"
+        await conn.OpenAsync();
+        await using var transaction = await conn.BeginTransactionAsync();
+
+        const string upsertSql = @"
             WITH upsert AS (
                 UPDATE net_income
                 SET value = @value
@@ -357,7 +348,63 @@ public class ValuationRepository : IValuationRepository
             WHERE NOT EXISTS (SELECT 1 FROM upsert);
         ";
 
-        await conn.ExecuteAsync(sql, new { assetId, year, value });
+        await conn.ExecuteAsync(upsertSql, new { assetId, year, value }, transaction);
+
+        const string recalculateSql = @"
+            WITH latest_income AS (
+                SELECT value AS ending_value
+                FROM net_income
+                WHERE asset_id = @assetId
+                ORDER BY year DESC, id DESC
+                LIMIT 1
+            ),
+            beginning_income AS (
+                SELECT value AS beginning_value
+                FROM net_income
+                WHERE asset_id = @assetId
+                ORDER BY year DESC, id DESC
+                OFFSET 4
+                LIMIT 1
+            ),
+            income_endpoints AS (
+                SELECT
+                    CASE
+                        WHEN beginning_income.beginning_value = 0 THEN 0.1::double precision
+                        ELSE beginning_income.beginning_value
+                    END AS beginning_value,
+                    latest_income.ending_value
+                FROM latest_income
+                LEFT JOIN beginning_income ON TRUE
+            ),
+            cagr_ratios AS (
+                SELECT
+                    beginning_value,
+                    ending_value,
+                    (ending_value - beginning_value + abs(beginning_value)) / abs(beginning_value) AS ratio
+                FROM income_endpoints
+            ),
+            calculated_cagr AS (
+                SELECT
+                    CASE
+                        WHEN beginning_value IS NULL OR ending_value IS NULL THEN NULL
+                        WHEN ending_value < 0 AND beginning_value < 0 THEN
+                            CASE
+                                WHEN abs(ending_value) < abs(beginning_value) THEN
+                                    (power(abs(ending_value / beginning_value), 1.0::double precision / 5.0) - 1) * -1
+                                ELSE power(abs(ending_value / beginning_value), 1.0::double precision / 5.0) - 1
+                            END
+                        WHEN ratio < 0 THEN (power(abs(ratio), 1.0::double precision / 5.0) - 1) * -1
+                        ELSE power(ratio, 1.0::double precision / 5.0) - 1
+                    END AS cagr
+                FROM cagr_ratios
+            )
+            UPDATE asset
+            SET net_income_5y_cagr = calculated_cagr.cagr
+            FROM calculated_cagr
+            WHERE asset.id = @assetId;";
+
+        await conn.ExecuteAsync(recalculateSql, new { assetId }, transaction);
+        await transaction.CommitAsync();
     }
 
     public async Task UpsertFreeCashFlowAsync(int assetId, int year, double value)
