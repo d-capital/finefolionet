@@ -328,7 +328,7 @@ public class ValuationService : IValuationService
         // Await the async DCF calculation and convert decimal -> double?
         DcfDto dcf = await CalculateDcf(
             assetDto?.FreeCashFlowFy ?? 0,
-            averageGrowth?.FiveYears ?? 0,
+            averageGrowth?.ThreeYears ?? 0,
             3,
             wacc,
             terminalGrowth,
