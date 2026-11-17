@@ -7,7 +7,7 @@ CREATE TABLE article (
     meta_description varchar(255),
     content text NOT NULL,
     published_at text,
-    is_hidden boolean,
+    is_hidden boolean DEFAULT false,
     created_at timestamptz NOT NULL DEFAULT now(),
     last_updated_at timestamptz NOT NULL DEFAULT now()
 );

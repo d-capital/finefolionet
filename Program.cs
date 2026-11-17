@@ -29,6 +29,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<IValuationRepository, ValuationRepository>();
 builder.Services.AddSingleton<IAssetFundamentalsRepository, AssetFundamentalsRepository>();
 builder.Services.AddSingleton<ICookieConsentRepository, CookieConsentRepository>();
+builder.Services.AddSingleton<IArticleRepository, ArticleRepository>();
 builder.Services.AddSingleton<IValuationService, ValuationService>();
 builder.Services.AddSingleton<IAssetFundamentalsService, AssetFundamentalsService>();
 builder.Services.AddSingleton<ICookieConsentService, CookieConsentService>();
