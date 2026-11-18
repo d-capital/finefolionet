@@ -85,9 +85,9 @@ public sealed class ArticleRepository : IArticleRepository
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         const string sql = """
-            SELECT id, url_name, title, excerpt
+            SELECT id, url_name AS "UrlName", title, excerpt
             FROM article
-            WHERE is_hidden IS NOT TRUE
+            WHERE is_hidden IS FALSE
             ORDER BY id DESC
             LIMIT 10;
             """;
