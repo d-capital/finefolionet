@@ -15,13 +15,13 @@ public sealed class ArticleController : ControllerBase
         _repository = repository;
     }
 
-    /// <summary>Returns the full article information for the specified ID.</summary>
-    [HttpGet("{id:int}")]
+    /// <summary>Returns the full article information for the specified URL name.</summary>
+    [HttpGet("{urlName}")]
     [ProducesResponseType(typeof(ArticleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ArticleDto>> GetById(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<ArticleDto>> GetByUrlName(string urlName, CancellationToken cancellationToken)
     {
-        var article = await _repository.GetByIdAsync(id, cancellationToken);
+        var article = await _repository.GetByUrlNameAsync(urlName, cancellationToken);
         return article is null ? NotFound() : Ok(article);
     }
 
@@ -33,7 +33,7 @@ public sealed class ArticleController : ControllerBase
         CancellationToken cancellationToken)
     {
         var article = await _repository.CreateAsync(request, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = article.Id }, article);
+        return CreatedAtAction(nameof(GetByUrlName), new { urlName = article.UrlName }, article);
     }
 
     /// <summary>Replaces the article with the specified ID.</summary>

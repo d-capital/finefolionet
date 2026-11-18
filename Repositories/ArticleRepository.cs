@@ -16,18 +16,18 @@ public sealed class ArticleRepository : IArticleRepository
             ?? throw new InvalidOperationException("DefaultConnection is not configured.");
     }
 
-    public async Task<ArticleDto?> GetByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<ArticleDto?> GetByUrlNameAsync(string urlName, CancellationToken cancellationToken)
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         const string sql = """
             SELECT id, url_name, language, title, excerpt, meta_title, meta_description, content,
                    published_at, is_hidden, created_at, last_updated_at
             FROM article
-            WHERE id = @id;
+            WHERE url_name = @urlName;
             """;
 
         return await conn.QuerySingleOrDefaultAsync<ArticleDto>(
-            new CommandDefinition(sql, new { id }, cancellationToken: cancellationToken));
+            new CommandDefinition(sql, new { urlName }, cancellationToken: cancellationToken));
     }
 
     public async Task<ArticleDto> CreateAsync(
