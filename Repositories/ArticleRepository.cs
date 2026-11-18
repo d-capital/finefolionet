@@ -20,7 +20,7 @@ public sealed class ArticleRepository : IArticleRepository
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         const string sql = """
-            SELECT id, url_name, title, excerpt, meta_title, meta_description, content,
+            SELECT id, url_name, language, title, excerpt, meta_title, meta_description, content,
                    published_at, is_hidden, created_at, last_updated_at
             FROM article
             WHERE id = @id;
@@ -37,12 +37,12 @@ public sealed class ArticleRepository : IArticleRepository
         await using var conn = new NpgsqlConnection(_connectionString);
         const string sql = """
             INSERT INTO article (
-                url_name, title, excerpt, meta_title, meta_description, content, published_at, is_hidden
+                url_name, language, title, excerpt, meta_title, meta_description, content, published_at, is_hidden
             )
             VALUES (
-                @UrlName, @Title, @Excerpt, @MetaTitle, @MetaDescription, @Content, @PublishedAt, @IsHidden
+                @UrlName, @Language, @Title, @Excerpt, @MetaTitle, @MetaDescription, @Content, @PublishedAt, @IsHidden
             )
-            RETURNING id, url_name, title, excerpt, meta_title, meta_description, content,
+            RETURNING id, url_name, language, title, excerpt, meta_title, meta_description, content,
                       published_at, is_hidden, created_at, last_updated_at;
             """;
 
@@ -62,6 +62,7 @@ public sealed class ArticleRepository : IArticleRepository
         const string sql = """
             UPDATE article
             SET url_name = @UrlName,
+                language = @Language,
                 title = @Title,
                 excerpt = @Excerpt,
                 meta_title = @MetaTitle,
@@ -71,12 +72,12 @@ public sealed class ArticleRepository : IArticleRepository
                 is_hidden = @IsHidden,
                 last_updated_at = now()
             WHERE id = @id
-            RETURNING id, url_name, title, excerpt, meta_title, meta_description, content,
+            RETURNING id, url_name, language, title, excerpt, meta_title, meta_description, content,
                       published_at, is_hidden, created_at, last_updated_at;
             """;
 
         return await conn.QuerySingleOrDefaultAsync<ArticleDto>(
-            new CommandDefinition(sql, new { id, request.UrlName, request.Title, request.Excerpt,
+            new CommandDefinition(sql, new { id, request.UrlName, request.Language, request.Title, request.Excerpt,
                 request.MetaTitle, request.MetaDescription, request.Content, request.PublishedAt,
                 request.IsHidden }, cancellationToken: cancellationToken));
     }
@@ -85,7 +86,7 @@ public sealed class ArticleRepository : IArticleRepository
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         const string sql = """
-            SELECT id, url_name AS "UrlName", title, excerpt
+            SELECT id, url_name AS "UrlName", language AS "Language", title, excerpt
             FROM article
             WHERE is_hidden IS FALSE
             ORDER BY id DESC

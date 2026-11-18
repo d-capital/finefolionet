@@ -4,5 +4,6 @@ namespace Finefolio.ValuationApi.Models;
 public sealed record ArticleSummaryDto(
     int Id,
     string UrlName,
+    string Language,
     string Title,
     string? Excerpt);

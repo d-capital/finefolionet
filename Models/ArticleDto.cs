@@ -5,6 +5,7 @@ public sealed record ArticleDto
 {
     public int Id { get; init; }
     public string UrlName { get; init; } = string.Empty;
+    public string Language { get; init; } = string.Empty;
     public string Title { get; init; } = string.Empty;
     public string? Excerpt { get; init; }
     public string? MetaTitle { get; init; }

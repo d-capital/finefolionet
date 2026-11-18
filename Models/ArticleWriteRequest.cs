@@ -9,6 +9,11 @@ public sealed record ArticleWriteRequest
     public required string UrlName { get; init; }
 
     [Required]
+    [StringLength(2, MinimumLength = 2)]
+    [RegularExpression("^[a-z]{2}$")]
+    public required string Language { get; init; }
+
+    [Required]
     public required string Title { get; init; }
 
     public string? Excerpt { get; init; }
