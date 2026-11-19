@@ -1,22 +1,81 @@
 using System.Data;
+using System.Net;
+using System.Threading.RateLimiting;
 using Dapper;
 using EvolveDb;
+using Finefolio.ValuationApi.Authentication;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using Finefolio.ValuationApi.Repositories;
+using Finefolio.ValuationApi.RateLimiting;
 using Finefolio.ValuationApi.Services;
 using Finefolio.ValuationApi.Services.PriceProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
+var exemptNetworks = builder.Configuration
+    .GetSection("RateLimiting:InternalNetworks")
+    .Get<string[]>()?
+    .Select(IPNetwork.Parse)
+    .ToArray() ?? [];
+
+if (string.IsNullOrWhiteSpace(builder.Configuration["ArticleApiToken"]))
+{
+    throw new InvalidOperationException(
+        "ArticleApiToken must be configured through user secrets or an environment variable.");
+}
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services
+    .AddAuthentication(ArticleTokenAuthenticationHandler.SchemeName)
+    .AddScheme<AuthenticationSchemeOptions, ArticleTokenAuthenticationHandler>(
+        ArticleTokenAuthenticationHandler.SchemeName,
+        _ => { });
+builder.Services.AddAuthorization();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("api-per-client", context =>
+    {
+        var partition = RateLimitClientAddress.Resolve(context, exemptNetworks);
+        if (partition.IsExempt)
+        {
+            return RateLimitPartition.GetNoLimiter(partition.Key);
+        }
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partition.Key,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
+    });
+    options.OnRejected = async (rejection, cancellationToken) =>
+    {
+        rejection.HttpContext.Response.Headers["Retry-After"] = "60";
+        await rejection.HttpContext.Response.WriteAsJsonAsync(
+            new ProblemDetails
+            {
+                Status = StatusCodes.Status429TooManyRequests,
+                Title = "Too Many Requests",
+                Detail = "The request limit has been reached. Try again in one minute."
+            },
+            cancellationToken);
+    };
+});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -71,7 +130,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRouting();
 app.UseCors("AllowAll");
-app.MapControllers();
+app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers().RequireRateLimiting("api-per-client");
 
 app.Run();

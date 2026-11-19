@@ -1,5 +1,6 @@
 using Finefolio.ValuationApi.Models;
 using Finefolio.ValuationApi.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Finefolio.ValuationApi.Controllers;
@@ -27,7 +28,10 @@ public sealed class ArticleController : ControllerBase
 
     /// <summary>Creates an article with a generated ID.</summary>
     [HttpPost]
+    [Authorize]
     [ProducesResponseType(typeof(ArticleDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<ArticleDto>> Create(
         [FromBody] ArticleWriteRequest request,
         CancellationToken cancellationToken)
@@ -38,8 +42,11 @@ public sealed class ArticleController : ControllerBase
 
     /// <summary>Replaces the article with the specified ID.</summary>
     [HttpPut("{id:int}")]
+    [Authorize]
     [ProducesResponseType(typeof(ArticleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult<ArticleDto>> UpdateById(
         int id,
         [FromBody] ArticleWriteRequest request,
