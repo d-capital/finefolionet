@@ -48,6 +48,13 @@ through .NET user secrets for local development or as a container environment
 secret in production. The application fails to start if the token is missing;
 do not commit it to source control or place it in `appsettings.json`.
 
+The valuation write URLs
+`POST https://valestor.com/api/valuation/{exchange}/{ticker}/net-income` and
+`POST https://valestor.com/api/valuation/{exchange}/{ticker}/free-cash-flow`
+also require the same bearer token. Updating fundamentals with
+`PATCH https://valestor.com/api/asset-fundamentals/{exchange}/{ticker}` requires
+it as well.
+
 Rate limiting
 
 API routes are limited to 60 requests per minute per external client IP.

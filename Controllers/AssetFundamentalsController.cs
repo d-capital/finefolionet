@@ -1,5 +1,6 @@
 using Finefolio.ValuationApi.Models;
 using Finefolio.ValuationApi.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Finefolio.ValuationApi.Controllers;
@@ -16,6 +17,10 @@ public class AssetFundamentalsController : ControllerBase
     }
 
     [HttpPatch("{exchange}/{ticker}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Patch(string exchange, string ticker, [FromBody] AssetFundamentalsUpdateDto request)
     {
         if (request == null || !request.HasAnyValue)
