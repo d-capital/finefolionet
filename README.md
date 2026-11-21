@@ -39,6 +39,35 @@ average PEG of marked NYSE/NASDAQ stocks (S&P 500 group) or marked MOEX stocks,
 depending on the stock's exchange. The averages are stored separately and
 refreshed by the nightly metrics job. The individual `valuation.peg` is unchanged.
 
+Article write access
+
+The public article URLs are `POST https://valestor.com/api/article` and
+`PUT https://valestor.com/api/article/{id}`. Both require
+`Authorization: Bearer <token>`. Configure a high-entropy `ArticleApiToken`
+through .NET user secrets for local development or as a container environment
+secret in production. The application fails to start if the token is missing;
+do not commit it to source control or place it in `appsettings.json`.
+
+The valuation write URLs
+`POST https://valestor.com/api/valuation/{exchange}/{ticker}/net-income` and
+`POST https://valestor.com/api/valuation/{exchange}/{ticker}/free-cash-flow`
+also require the same bearer token. Updating fundamentals with
+`PATCH https://valestor.com/api/asset-fundamentals/{exchange}/{ticker}` requires
+it as well.
+
+Rate limiting
+
+API routes are limited to 60 requests per minute per external client IP.
+Excess requests receive `429 Too Many Requests` and a `Retry-After` header.
+Loopback is always exempt. For requests proxied by Caddy, the API uses the
+first `X-Forwarded-For` address when the connection comes from a private
+network address. To exempt direct Docker-network calls as well, configure the
+Docker subnet as `RateLimiting__InternalNetworks__0` (for example,
+`172.20.0.0/16`). Until the actual subnet is configured, only loopback is
+exempt. Keep the API container port private and reachable only by Caddy and
+trusted containers; do not publish port 8080 to the public internet. The
+limiter is in-memory and applies independently per API process.
+
 Quick start
 
 1. Ensure PostgreSQL is running and reachable. Update `appsettings.json` `ConnectionStrings:DefaultConnection` if needed.

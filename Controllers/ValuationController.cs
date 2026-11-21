@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Finefolio.ValuationApi.Services;
@@ -50,6 +51,10 @@ public class ValuationController : ControllerBase
     }
 
     [HttpPost("{exchange}/{ticker}/net-income")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PostNetIncome(string exchange, string ticker, [FromBody] NetIncomeUpdateDto dto)
     {
         if (dto == null || dto.Year == null || dto.Value == null)
@@ -63,6 +68,10 @@ public class ValuationController : ControllerBase
     }
 
     [HttpPost("{exchange}/{ticker}/free-cash-flow")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> PostFreeCashFlow(string exchange, string ticker, [FromBody] FreeCashFlowUpdateDto dto)
     {
         if (dto == null || dto.Year == null || dto.Value == null)
