@@ -42,11 +42,13 @@ public class ValuationService : IValuationService
 
         var sectorLabel = assetLabels?.Where(l => l?.Language == lang && l?.Label == "sector").FirstOrDefault()?.Value;
         var industryLabel = assetLabels?.Where(l => l?.Language == lang && l?.Label == "industry").FirstOrDefault()?.Value;
+        var sectorLanguage = lang;
 
         if (exchange != "MOEX" && lang == "ru")
         {
             sectorLabel = assetLabels?.Where(l => l?.Language == "en" && l?.Label == "sector").FirstOrDefault()?.Value;
             industryLabel = assetLabels?.Where(l => l?.Language == "en" && l?.Label == "industry").FirstOrDefault()?.Value;
+            sectorLanguage = "en";
         }
 
         var price = 0m;
@@ -113,6 +115,13 @@ public class ValuationService : IValuationService
         if (assetDto?.Exchange is not null)
         {
             valuation.AveragePeg = await _repository.GetAverageBroadIndexPegAsync(assetDto.Exchange);
+            if (!string.IsNullOrEmpty(sectorLabel))
+            {
+                valuation.AverageSectorPeg = await _repository.GetAverageSectorPegAsync(
+                    assetDto.Exchange,
+                    sectorLanguage,
+                    sectorLabel);
+            }
         }
 
         var isPreviousDayData = stockInfo.Price == 0;

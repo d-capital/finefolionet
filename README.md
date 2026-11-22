@@ -38,6 +38,9 @@ For stocks marked as broad-index constituents, `valuation.averagePeg` is the
 average PEG of marked NYSE/NASDAQ stocks (S&P 500 group) or marked MOEX stocks,
 depending on the stock's exchange. The averages are stored separately and
 refreshed by the nightly metrics job. The individual `valuation.peg` is unchanged.
+`valuation.averageSectorPeg` is the average PEG of marked broad-index stocks
+with the same sector and label language as the stock. For US stocks requested in
+Russian, the English sector label is used, matching `stockInfo.sector`.
 
 Article write access
 
