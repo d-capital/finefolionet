@@ -9,6 +9,9 @@ public interface IValuationService
         decimal minEps,
         string? exchange,
         CancellationToken cancellationToken);
+    Task<IReadOnlyList<SectorPegResponse>> GetSectorPegsAsync(
+        string? market,
+        CancellationToken cancellationToken);
     Task<ValuationResultDto?> GetValuationAsync(string exchange, string ticker, string lang);
     Task<DcfResultDto?> GetDcfValuationAsync(string exchange, string ticker, string lang);
     Task<bool> AddOrUpdateNetIncomeAsync(string exchange, string ticker, int year, double value);

@@ -11,7 +11,14 @@ public interface IValuationRepository
         CancellationToken cancellationToken);
     Task<AssetDto?> GetAssetDataAsync(string exchange, string ticker, string lang);
     Task<double?> GetAverageBroadIndexPegAsync(string exchange);
-    Task<double?> GetAverageSectorPegAsync(string exchange, string language, string sector);
+    Task<double?> GetAverageSectorPegAsync(
+        string exchange,
+        string language,
+        string sector,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SectorPegResponse>> GetSectorPegsAsync(
+        string? market,
+        CancellationToken cancellationToken);
     Task<IList<NetProfitHistoryDto>> GetNetIncomeHistoryAsync(int assetId);
     Task<IList<FreeCashFlowHistoryDto>> GetFreeCashFlowHistoryAsync(int assetId);
     Task<IList<AssetLabelDto>> GetAssetLabelsAsync(int assetId);

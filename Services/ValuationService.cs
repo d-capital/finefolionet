@@ -24,6 +24,14 @@ public class ValuationService : IValuationService
         return await _repository.GetScreenerCandidatesAsync(minDividend, minEps, exchangeFilter, cancellationToken);
     }
 
+    public Task<IReadOnlyList<SectorPegResponse>> GetSectorPegsAsync(
+        string? market,
+        CancellationToken cancellationToken)
+    {
+        var marketFilter = string.IsNullOrWhiteSpace(market) ? null : market.Trim().ToUpperInvariant();
+        return _repository.GetSectorPegsAsync(marketFilter, cancellationToken);
+    }
+
     public async Task<ValuationResultDto?> GetValuationAsync(string exchange, string ticker, string lang)
     {
         var assetDto = await _repository.GetAssetDataAsync(exchange, ticker, lang);

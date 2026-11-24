@@ -80,7 +80,11 @@ public class ValuationRepository : IValuationRepository
         return await conn.QueryFirstOrDefaultAsync<double?>(sql, new { exchange });
     }
 
-    public async Task<double?> GetAverageSectorPegAsync(string exchange, string language, string sector)
+    public async Task<double?> GetAverageSectorPegAsync(
+        string exchange,
+        string language,
+        string sector,
+        CancellationToken cancellationToken = default)
     {
         await using var conn = new NpgsqlConnection(_connectionString);
         const string sql = @"
@@ -94,7 +98,34 @@ public class ValuationRepository : IValuationRepository
               AND language = @language
               AND sector = @sector;";
 
-        return await conn.QueryFirstOrDefaultAsync<double?>(sql, new { exchange, language, sector });
+        var command = new CommandDefinition(
+            sql,
+            new { exchange, language, sector },
+            cancellationToken: cancellationToken);
+        return await conn.QueryFirstOrDefaultAsync<double?>(command);
+    }
+
+    public async Task<IReadOnlyList<SectorPegResponse>> GetSectorPegsAsync(
+        string? market,
+        CancellationToken cancellationToken)
+    {
+        await using var conn = new NpgsqlConnection(_connectionString);
+        const string sql = @"
+            SELECT
+                market AS Market,
+                language AS Language,
+                sector AS Sector,
+                average_peg AS AveragePeg
+            FROM sector_peg_average
+            WHERE @market IS NULL OR market = @market
+            ORDER BY market, language, sector;";
+
+        var command = new CommandDefinition(
+            sql,
+            new { market },
+            cancellationToken: cancellationToken);
+        var sectorPegs = await conn.QueryAsync<SectorPegResponse>(command);
+        return sectorPegs.AsList();
     }
 
     public async Task<IList<NetProfitHistoryDto>> GetNetIncomeHistoryAsync(int assetId) 

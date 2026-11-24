@@ -17,6 +17,15 @@ and dividend yield at least `minDividend`. They must also have a positive stored
 net-income five-year CAGR. The response includes the stock name, ticker,
 exchange, price, EPS, and `netIncome5yCagr` (a decimal rate, e.g. `0.12` for 12%).
 
+Sector PEG
+
+Use `GET {url}/valuation/sector-peg` to retrieve average PEGs for all sectors
+in both markets. Optionally filter by market with
+`GET {url}/valuation/sector-peg?market=US` or
+`GET {url}/valuation/sector-peg?market=MOEX`. The response contains each
+market/language/sector combination and its `averagePeg`. Other market values
+return `400 Bad Request`.
+
 Historical free cash flow
 
 Use `POST {url}/valuation/{exchange}/{ticker}/free-cash-flow` to add or update an
