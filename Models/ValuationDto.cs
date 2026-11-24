@@ -11,4 +11,5 @@ public class ValuationDto
     public AverageGrowthDto? AvgGrowth { get; set; }
     public double? Peg { get; set; }
     public double? AveragePeg { get; set; }
+    public double? AverageSectorPeg { get; set; }
 }

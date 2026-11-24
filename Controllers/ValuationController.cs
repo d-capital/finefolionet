@@ -32,6 +32,28 @@ public class ValuationController : ControllerBase
         return Ok(candidates);
     }
 
+    /// <summary>
+    /// Returns average PEGs for all sectors, optionally filtered by market.
+    /// </summary>
+    [HttpGet("sector-peg")]
+    [ProducesResponseType(typeof(IReadOnlyList<SectorPegResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyList<SectorPegResponse>>> GetSectorPegs(
+        [FromQuery] string? market,
+        CancellationToken cancellationToken)
+    {
+        var marketFilter = string.IsNullOrWhiteSpace(market) ? null : market.Trim();
+        if (marketFilter is not null &&
+            !marketFilter.Equals("US", StringComparison.OrdinalIgnoreCase) &&
+            !marketFilter.Equals("MOEX", StringComparison.OrdinalIgnoreCase))
+        {
+            return BadRequest("Market must be either 'US' or 'MOEX'.");
+        }
+
+        var sectorPegs = await _service.GetSectorPegsAsync(marketFilter, cancellationToken);
+        return Ok(sectorPegs);
+    }
+
     [HttpGet("{lang}/{exchange}/{ticker}")]
     public async Task<IActionResult> Get(string lang, string exchange, string ticker)
     {

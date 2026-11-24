@@ -24,6 +24,12 @@ Authorization: Bearer {{apiToken}}
 ### Read DCF valuation using historical free-cash-flow growth
 GET {{baseUrl}}/valuation/dcf/en/NASDAQ/MSFT
 
+### Read average PEGs for all sectors across both markets
+GET {{baseUrl}}/valuation/sector-peg
+
+### Read average PEGs for all US sectors
+GET {{baseUrl}}/valuation/sector-peg?market=US
+
 ### Update asset fundamentals and classification
 PATCH {{baseUrl}}/asset-fundamentals/NASDAQ/MSFT
 Content-Type: application/json

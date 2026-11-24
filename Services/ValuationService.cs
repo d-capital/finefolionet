@@ -24,6 +24,14 @@ public class ValuationService : IValuationService
         return await _repository.GetScreenerCandidatesAsync(minDividend, minEps, exchangeFilter, cancellationToken);
     }
 
+    public Task<IReadOnlyList<SectorPegResponse>> GetSectorPegsAsync(
+        string? market,
+        CancellationToken cancellationToken)
+    {
+        var marketFilter = string.IsNullOrWhiteSpace(market) ? null : market.Trim().ToUpperInvariant();
+        return _repository.GetSectorPegsAsync(marketFilter, cancellationToken);
+    }
+
     public async Task<ValuationResultDto?> GetValuationAsync(string exchange, string ticker, string lang)
     {
         var assetDto = await _repository.GetAssetDataAsync(exchange, ticker, lang);
@@ -42,11 +50,13 @@ public class ValuationService : IValuationService
 
         var sectorLabel = assetLabels?.Where(l => l?.Language == lang && l?.Label == "sector").FirstOrDefault()?.Value;
         var industryLabel = assetLabels?.Where(l => l?.Language == lang && l?.Label == "industry").FirstOrDefault()?.Value;
+        var sectorLanguage = lang;
 
         if (exchange != "MOEX" && lang == "ru")
         {
             sectorLabel = assetLabels?.Where(l => l?.Language == "en" && l?.Label == "sector").FirstOrDefault()?.Value;
             industryLabel = assetLabels?.Where(l => l?.Language == "en" && l?.Label == "industry").FirstOrDefault()?.Value;
+            sectorLanguage = "en";
         }
 
         var price = 0m;
@@ -113,6 +123,13 @@ public class ValuationService : IValuationService
         if (assetDto?.Exchange is not null)
         {
             valuation.AveragePeg = await _repository.GetAverageBroadIndexPegAsync(assetDto.Exchange);
+            if (!string.IsNullOrEmpty(sectorLabel))
+            {
+                valuation.AverageSectorPeg = await _repository.GetAverageSectorPegAsync(
+                    assetDto.Exchange,
+                    sectorLanguage,
+                    sectorLabel);
+            }
         }
 
         var isPreviousDayData = stockInfo.Price == 0;

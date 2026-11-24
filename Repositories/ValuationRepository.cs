@@ -80,6 +80,54 @@ public class ValuationRepository : IValuationRepository
         return await conn.QueryFirstOrDefaultAsync<double?>(sql, new { exchange });
     }
 
+    public async Task<double?> GetAverageSectorPegAsync(
+        string exchange,
+        string language,
+        string sector,
+        CancellationToken cancellationToken = default)
+    {
+        await using var conn = new NpgsqlConnection(_connectionString);
+        const string sql = @"
+            SELECT average_peg
+            FROM sector_peg_average
+            WHERE market = CASE
+                WHEN upper(@exchange) IN ('NYSE', 'NASDAQ') THEN 'US'
+                WHEN upper(@exchange) = 'MOEX' THEN 'MOEX'
+                ELSE NULL
+            END
+              AND language = @language
+              AND sector = @sector;";
+
+        var command = new CommandDefinition(
+            sql,
+            new { exchange, language, sector },
+            cancellationToken: cancellationToken);
+        return await conn.QueryFirstOrDefaultAsync<double?>(command);
+    }
+
+    public async Task<IReadOnlyList<SectorPegResponse>> GetSectorPegsAsync(
+        string? market,
+        CancellationToken cancellationToken)
+    {
+        await using var conn = new NpgsqlConnection(_connectionString);
+        const string sql = @"
+            SELECT
+                market AS Market,
+                language AS Language,
+                sector AS Sector,
+                average_peg AS AveragePeg
+            FROM sector_peg_average
+            WHERE @market IS NULL OR market = @market
+            ORDER BY market, language, sector;";
+
+        var command = new CommandDefinition(
+            sql,
+            new { market },
+            cancellationToken: cancellationToken);
+        var sectorPegs = await conn.QueryAsync<SectorPegResponse>(command);
+        return sectorPegs.AsList();
+    }
+
     public async Task<IList<NetProfitHistoryDto>> GetNetIncomeHistoryAsync(int assetId) 
     { 
         await using var conn = new NpgsqlConnection(_connectionString); 
@@ -325,6 +373,43 @@ public class ValuationRepository : IValuationRepository
 
         await conn.ExecuteAsync(new CommandDefinition(
             averageSql,
+            transaction: transaction,
+            cancellationToken: cancellationToken));
+
+        const string sectorAverageSql = @"
+            DELETE FROM sector_peg_average;
+
+            WITH sector_labels AS (
+                SELECT DISTINCT
+                    CASE
+                        WHEN upper(asset.exchange) IN ('NYSE', 'NASDAQ') THEN 'US'
+                        WHEN upper(asset.exchange) = 'MOEX' THEN 'MOEX'
+                    END AS market,
+                    asset.id AS asset_id,
+                    asset_label.language,
+                    asset_label.value AS sector
+                FROM asset
+                JOIN asset_label ON asset_label.asset_id = asset.id
+                WHERE asset.is_broad_index_part = TRUE
+                  AND asset_label.label = 'sector'
+                  AND asset_label.value IS NOT NULL
+                  AND asset_label.value <> ''
+            )
+            INSERT INTO sector_peg_average (market, language, sector, average_peg, calculated_at)
+            SELECT
+                sector_labels.market,
+                sector_labels.language,
+                sector_labels.sector,
+                AVG(asset.peg),
+                now()
+            FROM sector_labels
+            JOIN asset ON asset.id = sector_labels.asset_id
+            WHERE sector_labels.market IS NOT NULL
+              AND asset.peg IS NOT NULL
+            GROUP BY sector_labels.market, sector_labels.language, sector_labels.sector;";
+
+        await conn.ExecuteAsync(new CommandDefinition(
+            sectorAverageSql,
             transaction: transaction,
             cancellationToken: cancellationToken));
         await transaction.CommitAsync(cancellationToken);
